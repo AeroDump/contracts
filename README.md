@@ -2,7 +2,7 @@
 Our multi-sender platform goes beyond simple bulk transfers by offering support for multiple networks, secure and trusted token distribution, and automated multi-send functions. Project managers can rely on tools such as Chainlink, KYC, and AI-driven automation to manage token distribution with greater trust and transparency.
 
 # Process
-![image](https://github.com/user-attachments/assets/96a7cf08-7d8f-4ffe-a4f0-ffb8bf13ded8)
+![image](https://github.com/user-attachments/assets/e42cce5a-4601-4c80-af1d-5902c02936e8)
 
 # Our using the Tech
 
