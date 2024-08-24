@@ -3,9 +3,13 @@ pragma solidity 0.8.26;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { ISPHook } from "@signprotocol/signprotocol-evm/src/interfaces/ISPHook.sol";
+import { ISP } from "@signprotocol/signprotocol-evm/src/interfaces/ISP.sol";
+import { Attestation } from "@signprotocol/signprotocol-evm/src/models/Attestation.sol";
+import { DataLocation } from "@signprotocol/signprotocol-evm/src/models/DataLocation.sol";
 
-contract AeroDumpAttestations is Ownable, ISPHook {
+contract AeroDump is Ownable {
+    ISP public spInstance;
+
     error ProjectAlreadyRegistered();
     error NotAuthorizedToVerify();
     error ProjectNotRegisrtered();
@@ -14,80 +18,74 @@ contract AeroDumpAttestations is Ownable, ISPHook {
     error NoRefundAgreement();
 
     struct Project {
-        address owner;
+        address projectOwner;
         bool isVerified;
         bool hasRefundAgreement;
     }
 
+    uint64 public projectVerificationSchemaId;
+    uint64 public csvUploadSchemaId;
+    uint64 public tokenDepositSchemaId;
+    uint64 public userConsentSchemaId;
+    uint64 public distributionCertificateSchemaId;
+    uint64 public airdropExecutionSchemaId;
+
     mapping(string => Project) private s_projects;
     mapping(address => bool) private s_verifiers;
 
-    event ProjectRegistered(string indexed projectName, address indexed projectOwner);
-    event ProjectVerified(string indexed projectName, address indexed projectOwner);
-    event CSVFileUploaded(
-        address indexed projectOwner, bytes32 indexed fileHash, uint256 indexed timestamp, uint256 recipientCount
-    );
-    event ProjectTokenDeposited(
-        string indexed projectName, address indexed tokenAddress, uint256 indexed amount, uint256 timestamp
-    );
-    event UserConsentRecorded(address indexed user, bool indexed consentGiven, uint256 indexed timestamp);
-    event NewsletterSent(
-        string indexed projectName, bytes32 indexed messageHash, uint256 indexed recipientCount, uint256 timestamp
-    );
-    event RefundAgreementSigned(string indexed projectName, address indexed projectOwner);
-    event DistributionCertificateIssued(
-        string indexed projectName, uint256 indexed totalAmount, uint256 indexed recipientCount
-    );
-    event AirdropExecuted(
-        address indexed projectOwner,
-        uint256 indexed recipientCount,
-        uint256 indexed totalAmount,
-        bytes32 transactionHash
-    );
-
-    constructor(address initialOwner) Ownable(initialOwner) { }
+    constructor(address initialOwner, address _spInstance) Ownable(initialOwner) {
+        spInstance = ISP(_spInstance);
+    }
 
     function addVerifier(address verifier) external onlyOwner {
         s_verifiers[verifier] = true;
     }
 
     function registerProject(string memory projectName) external {
-        require(s_projects[projectName].owner == address(0), ProjectAlreadyRegistered());
-        s_projects[projectName].owner = msg.sender;
-        emit ProjectRegistered(projectName, msg.sender);
+        require(s_projects[projectName].projectOwner == address(0), ProjectAlreadyRegistered());
+        s_projects[projectName].projectOwner = msg.sender;
+
+        bytes[] memory recipients = new bytes[](1);
+        recipients[0] = abi.encode(msg.sender);
+
+        Attestation memory a = Attestation({
+            schemaId: projectVerificationSchemaId,
+            linkedAttestationId: 0,
+            attestTimestamp: 0,
+            revokeTimestamp: 0,
+            attester: address(this),
+            validUntil: 0,
+            dataLocation: DataLocation.ONCHAIN,
+            revoked: false,
+            recipients: recipients,
+            data: abi.encode(projectName, msg.sender, false)
+        });
+
+        spInstance.attest(a, "", "", "");
     }
 
     function verifyProject(string memory projectName) external {
         require(s_verifiers[msg.sender], NotAuthorizedToVerify());
-        require(s_projects[projectName].owner != address(0), ProjectNotRegisrtered());
+        require(s_projects[projectName].projectOwner != address(0), ProjectNotRegisrtered());
 
         s_projects[projectName].isVerified = true;
-
-        emit ProjectVerified(projectName, s_projects[projectName].owner);
     }
 
-    function recordCSVFileUpload(bytes32 fileHash, uint256 recipientCount) external {
-        emit CSVFileUploaded(msg.sender, fileHash, block.timestamp, recipientCount);
-    }
+    function recordCSVFileUpload(bytes32 fileHash, uint256 recipientCount) external { }
 
     function recordProjectTokenDeposit(string memory projectName, address tokenAddress, uint256 amount) external {
-        require(s_projects[projectName].owner == msg.sender, NotProjectOwner());
-        emit ProjectTokenDeposited(projectName, tokenAddress, amount, block.timestamp);
+        require(s_projects[projectName].projectOwner == msg.sender, NotProjectOwner());
     }
 
-    function recordUserConsent(bool consentGiven) external {
-        emit UserConsentRecorded(msg.sender, consentGiven, block.timestamp);
-    }
+    function recordUserConsent(bool consentGiven) external { }
 
     function recordNewsletterSent(string memory projectName, bytes32 messageHash, uint256 recipientCount) external {
-        require(s_projects[projectName].owner == msg.sender, NotProjectOwner());
-        emit NewsletterSent(projectName, messageHash, recipientCount, block.timestamp);
+        require(s_projects[projectName].projectOwner == msg.sender, NotProjectOwner());
     }
 
     function signRefundAgreement(string memory projectName) external {
-        require(s_projects[projectName].owner == msg.sender, NotProjectOwner());
+        require(s_projects[projectName].projectOwner == msg.sender, NotProjectOwner());
         s_projects[projectName].hasRefundAgreement = true;
-        emit RefundAgreementSigned(projectName, msg.sender);
     }
 
     function issueDistributionCertificate(
@@ -97,60 +95,10 @@ contract AeroDumpAttestations is Ownable, ISPHook {
     )
         external
     {
-        require(s_projects[projectName].owner == msg.sender, NotProjectOwner());
+        require(s_projects[projectName].projectOwner == msg.sender, NotProjectOwner());
         require(s_projects[projectName].isVerified, ProjectNotVerified());
         require(s_projects[projectName].hasRefundAgreement, NoRefundAgreement());
-
-        emit DistributionCertificateIssued(projectName, totalAmount, recipientCount);
     }
 
-    function recordAirdropTransaction(uint256 recipientCount, uint256 totalAmount, bytes32 transactionHash) external {
-        emit AirdropExecuted(msg.sender, recipientCount, totalAmount, transactionHash);
-    }
-
-    function didReceiveAttestation(
-        address attester,
-        uint64 schemaId,
-        uint64 attestationId,
-        bytes calldata extraData
-    )
-        external
-        payable
-        override
-    { }
-
-    function didReceiveAttestation(
-        address attester,
-        uint64 schemaId,
-        uint64 attestationId,
-        IERC20 resolverFeeERC20Token,
-        uint256 resolverFeeERC20Amount,
-        bytes calldata extraData
-    )
-        external
-        override
-    { }
-
-    function didReceiveRevocation(
-        address attester,
-        uint64 schemaId,
-        uint64 attestationId,
-        bytes calldata extraData
-    )
-        external
-        payable
-        override
-    { }
-
-    function didReceiveRevocation(
-        address attester,
-        uint64 schemaId,
-        uint64 attestationId,
-        IERC20 resolverFeeERC20Token,
-        uint256 resolverFeeERC20Amount,
-        bytes calldata extraData
-    )
-        external
-        override
-    { }
+    function recordAirdropTransaction(uint256 recipientCount, uint256 totalAmount, bytes32 transactionHash) external { }
 }
