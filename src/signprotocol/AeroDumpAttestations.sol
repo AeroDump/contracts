@@ -7,11 +7,20 @@ import { ISP } from "@signprotocol/signprotocol-evm/src/interfaces/ISP.sol";
 import { Attestation } from "@signprotocol/signprotocol-evm/src/models/Attestation.sol";
 import { DataLocation } from "@signprotocol/signprotocol-evm/src/models/DataLocation.sol";
 
+/**
+ * @title AeroDumpAttestations
+ * @author AeroDump
+ * @notice This contract manages various attestations for a multi-sender platform.
+ * @dev It utilizes Sign Protocol's attestation system to store project-related data securely.
+ */
 contract AeroDumpAttestations is Ownable {
+    // @dev The instance of the Sign Protocol interface.
     ISP public spInstance;
 
+    // @dev Custom error for when a user is not authorized to verify a project.
     error NotAuthorizedToVerify();
 
+    // @dev Schema IDs for different types of attestations.
     uint64 public projectSchemaId;
     uint64 public csvUploadSchemaId;
     uint64 public tokenDepositSchemaId;
@@ -19,12 +28,28 @@ contract AeroDumpAttestations is Ownable {
     uint64 public distributionCertificateSchemaId;
     uint64 public airdropExecutionSchemaId;
 
+    // @dev Mapping of addresses to boolean indicating whether they are verified project managers.
     mapping(address => bool) private s_verifiers;
 
+    /**
+     * @dev Constructor initializes the Sign Protocol instance.
+     * @param initialOwner The address of the contract owner.
+     * @param _spInstance The address of the Sign Protocol instance.
+     */
     constructor(address initialOwner, address _spInstance) Ownable(initialOwner) {
         spInstance = ISP(_spInstance);
     }
 
+    /**
+     * @notice Sets schema IDs for different types of attestations.
+     * @dev This function must be called after deploying the contract to initialize the schema IDs.
+     * @param _projectSchemaId Schema ID for project-related attestations.
+     * @param _csvUploadSchemaId Schema ID for CSV file upload attestations.
+     * @param _tokenDepositSchemaId Schema ID for token deposit attestations.
+     * @param _userConsentSchemaId Schema ID for user consent attestations.
+     * @param _distributionCertificateSchemaId Schema ID for distribution certificate attestations.
+     * @param _airdropExecutionSchemaId Schema ID for airdrop execution attestations.
+     */
     function setSchemaIds(
         uint64 _projectSchemaId,
         uint64 _csvUploadSchemaId,
@@ -44,10 +69,20 @@ contract AeroDumpAttestations is Ownable {
         airdropExecutionSchemaId = _airdropExecutionSchemaId;
     }
 
+    /**
+     * @notice Adds a new verifier to the list of authorized addresses.
+     * @dev Only callable by the contract owner.
+     * @param verifier The address to add as a verified project manager.
+     */
     function addVerifier(address verifier) external onlyOwner {
         s_verifiers[verifier] = true;
     }
 
+    /**
+     * @notice Registers a new project with the system.
+     * @dev Creates an attestation for the project registration.
+     * @param projectName The name of the project being registered.
+     */
     function registerProject(string memory projectName) external {
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(msg.sender);
@@ -68,6 +103,12 @@ contract AeroDumpAttestations is Ownable {
         spInstance.attest(a, "", "", "");
     }
 
+    /**
+     * @notice Verifies a registered project.
+     * @dev Creates an attestation for the verification process.
+     * @param projectName The name of the project being verified.
+     * @param projectOwner The address of the project owner.
+     */
     function verifyProject(string memory projectName, address projectOwner) external {
         require(s_verifiers[msg.sender], NotAuthorizedToVerify());
 
@@ -90,6 +131,13 @@ contract AeroDumpAttestations is Ownable {
         spInstance.attest(a, "", "", "");
     }
 
+    /**
+     * @notice Records a CSV file upload for a project.
+     * @dev Creates an attestation for the CSV file upload.
+     * @param projectName The name of the project associated with the CSV file.
+     * @param fileHash The hash of the uploaded CSV file.
+     * @param recipientCount The number of recipients for this upload.
+     */
     function recordCSVFileUpload(string memory projectName, bytes32 fileHash, uint256 recipientCount) external {
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(msg.sender);
@@ -110,6 +158,13 @@ contract AeroDumpAttestations is Ownable {
         spInstance.attest(a, "", "", "");
     }
 
+    /**
+     * @notice Records a token deposit for a project.
+     * @dev Creates an attestation for the token deposit.
+     * @param projectName The name of the project associated with the token deposit.
+     * @param tokenAddress The address of the token being deposited.
+     * @param amount The amount of tokens being deposited.
+     */
     function recordProjectTokenDeposit(string memory projectName, address tokenAddress, uint256 amount) external {
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(msg.sender);
@@ -130,6 +185,11 @@ contract AeroDumpAttestations is Ownable {
         spInstance.attest(a, "", "", "");
     }
 
+    /**
+     * @notice Records user consent for a project.
+     * @dev Creates an attestation for the user's consent.
+     * @param consentGiven A boolean indicating whether the user gave consent.
+     */
     function recordUserConsent(bool consentGiven) external {
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(msg.sender);
@@ -150,6 +210,13 @@ contract AeroDumpAttestations is Ownable {
         spInstance.attest(a, "", "", "");
     }
 
+    /**
+     * @notice Issues a distribution certificate for a project.
+     * @dev Creates an attestation for the distribution certificate.
+     * @param projectName The name of the project receiving the distribution.
+     * @param totalAmount The total amount distributed.
+     * @param recipientCount The number of recipients for this distribution.
+     */
     function issueDistributionCertificate(
         string memory projectName,
         uint256 totalAmount,
@@ -176,6 +243,11 @@ contract AeroDumpAttestations is Ownable {
         spInstance.attest(a, "", "", "");
     }
 
+    /**
+     * @notice Signs a refund agreement for a project.
+     * @dev Creates an attestation for the signed refund agreement.
+     * @param projectName The name of the project associated with the refund agreement.
+     */
     function signRefundAgreement(string memory projectName) external {
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(msg.sender);
