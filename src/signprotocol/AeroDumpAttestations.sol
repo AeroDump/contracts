@@ -9,6 +9,9 @@ contract AeroDumpAttestations is Ownable, ISPHook {
     error ProjectAlreadyRegistered();
     error NotAuthorizedToVerify();
     error ProjectNotRegisrtered();
+    error NotProjectOwner();
+    error ProjectNotVerified();
+    error NoRefundAgreement();
 
     struct Project {
         address owner;
@@ -21,6 +24,10 @@ contract AeroDumpAttestations is Ownable, ISPHook {
 
     event ProjectRegistered(string indexed projectName, address indexed owner);
     event ProjectVerified(string indexed projectName, address indexed owner);
+    event RefundAgreementSigned(string indexed projectName, address indexed owner);
+    event DistributionCertificateIssued(
+        string indexed projectName, uint256 indexed totalAmount, uint256 indexed recipientCount
+    );
 
     constructor(address initialOwner) Ownable(initialOwner) { }
 
@@ -41,6 +48,26 @@ contract AeroDumpAttestations is Ownable, ISPHook {
         s_projects[projectName].isVerified = true;
 
         emit ProjectVerified(projectName, s_projects[projectName].owner);
+    }
+
+    function signRefundAgreement(string memory projectName) external {
+        require(s_projects[projectName].owner == msg.sender, NotProjectOwner());
+        s_projects[projectName].hasRefundAgreement = true;
+        emit RefundAgreementSigned(projectName, msg.sender);
+    }
+
+    function issueDistributionCertificate(
+        string memory projectName,
+        uint256 totalAmount,
+        uint256 recipientCount
+    )
+        external
+    {
+        require(s_projects[projectName].owner == msg.sender, NotProjectOwner());
+        require(s_projects[projectName].isVerified, ProjectNotVerified());
+        require(s_projects[projectName].hasRefundAgreement, NoRefundAgreement());
+
+        emit DistributionCertificateIssued(projectName, totalAmount, recipientCount);
     }
 
     function didReceiveAttestation(
