@@ -6,7 +6,42 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ISPHook } from "@signprotocol/signprotocol-evm/src/interfaces/ISPHook.sol";
 
 contract AeroDumpAttestations is Ownable, ISPHook {
+    error ProjectAlreadyRegistered();
+    error NotAuthorizedToVerify();
+    error ProjectNotRegisrtered();
+
+    struct Project {
+        address owner;
+        bool isVerified;
+        bool hasRefundAgreement;
+    }
+
+    mapping(string => Project) private s_projects;
+    mapping(address => bool) private s_verifiers;
+
+    event ProjectRegistered(string indexed projectName, address indexed owner);
+    event ProjectVerified(string indexed projectName, address indexed owner);
+
     constructor(address initialOwner) Ownable(initialOwner) { }
+
+    function addVerifier(address verifier) external onlyOwner {
+        s_verifiers[verifier] = true;
+    }
+
+    function registerProject(string memory projectName) external {
+        require(s_projects[projectName].owner == address(0), ProjectAlreadyRegistered());
+        s_projects[projectName].owner = msg.sender;
+        emit ProjectRegistered(projectName, msg.sender);
+    }
+
+    function verifyProject(string memory projectName) external {
+        require(s_verifiers[msg.sender], NotAuthorizedToVerify());
+        require(s_projects[projectName].owner != address(0), ProjectNotRegisrtered());
+
+        s_projects[projectName].isVerified = true;
+
+        emit ProjectVerified(projectName, s_projects[projectName].owner);
+    }
 
     function didReceiveAttestation(
         address attester,
