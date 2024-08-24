@@ -22,11 +22,27 @@ contract AeroDumpAttestations is Ownable, ISPHook {
     mapping(string => Project) private s_projects;
     mapping(address => bool) private s_verifiers;
 
-    event ProjectRegistered(string indexed projectName, address indexed owner);
-    event ProjectVerified(string indexed projectName, address indexed owner);
-    event RefundAgreementSigned(string indexed projectName, address indexed owner);
+    event ProjectRegistered(string indexed projectName, address indexed projectOwner);
+    event ProjectVerified(string indexed projectName, address indexed projectOwner);
+    event CSVFileUploaded(
+        address indexed projectOwner, bytes32 indexed fileHash, uint256 indexed timestamp, uint256 recipientCount
+    );
+    event ProjectTokenDeposited(
+        string indexed projectName, address indexed tokenAddress, uint256 indexed amount, uint256 timestamp
+    );
+    event UserConsentRecorded(address indexed user, bool indexed consentGiven, uint256 indexed timestamp);
+    event NewsletterSent(
+        string indexed projectName, bytes32 indexed messageHash, uint256 indexed recipientCount, uint256 timestamp
+    );
+    event RefundAgreementSigned(string indexed projectName, address indexed projectOwner);
     event DistributionCertificateIssued(
         string indexed projectName, uint256 indexed totalAmount, uint256 indexed recipientCount
+    );
+    event AirdropExecuted(
+        address indexed projectOwner,
+        uint256 indexed recipientCount,
+        uint256 indexed totalAmount,
+        bytes32 transactionHash
     );
 
     constructor(address initialOwner) Ownable(initialOwner) { }
@@ -50,6 +66,24 @@ contract AeroDumpAttestations is Ownable, ISPHook {
         emit ProjectVerified(projectName, s_projects[projectName].owner);
     }
 
+    function recordCSVFileUpload(bytes32 fileHash, uint256 recipientCount) external {
+        emit CSVFileUploaded(msg.sender, fileHash, block.timestamp, recipientCount);
+    }
+
+    function recordProjectTokenDeposit(string memory projectName, address tokenAddress, uint256 amount) external {
+        require(s_projects[projectName].owner == msg.sender, NotProjectOwner());
+        emit ProjectTokenDeposited(projectName, tokenAddress, amount, block.timestamp);
+    }
+
+    function recordUserConsent(bool consentGiven) external {
+        emit UserConsentRecorded(msg.sender, consentGiven, block.timestamp);
+    }
+
+    function recordNewsletterSent(string memory projectName, bytes32 messageHash, uint256 recipientCount) external {
+        require(s_projects[projectName].owner == msg.sender, NotProjectOwner());
+        emit NewsletterSent(projectName, messageHash, recipientCount, block.timestamp);
+    }
+
     function signRefundAgreement(string memory projectName) external {
         require(s_projects[projectName].owner == msg.sender, NotProjectOwner());
         s_projects[projectName].hasRefundAgreement = true;
@@ -68,6 +102,10 @@ contract AeroDumpAttestations is Ownable, ISPHook {
         require(s_projects[projectName].hasRefundAgreement, NoRefundAgreement());
 
         emit DistributionCertificateIssued(projectName, totalAmount, recipientCount);
+    }
+
+    function recordAirdropTransaction(uint256 recipientCount, uint256 totalAmount, bytes32 transactionHash) external {
+        emit AirdropExecuted(msg.sender, recipientCount, totalAmount, transactionHash);
     }
 
     function didReceiveAttestation(
