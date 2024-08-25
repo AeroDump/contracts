@@ -10,6 +10,3 @@
 [submodule "lib/layerzero-v2"]
 	path = lib/layerzero-v2
 	url = https://github.com/LayerZero-Labs/layerzero-v2
-[submodule "lib/sign-protocol-evm"]
-	path = lib/sign-protocol-evm
-	url = https://github.com/EthSign/sign-protocol-evm
