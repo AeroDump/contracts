@@ -3,7 +3,7 @@
 pragma solidity ^0.8.20;
 
 import {OFTAdapter} from "@layerzerolabs/oft-evm/contracts/OFTAdapter.sol";
-// import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
+import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
@@ -15,7 +15,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  * @dev Consider we give in USDC address in constructor, airdrop will be done using *only* USDC.
  */
 
-contract AerodumpOFTAdapter is OFTAdapter {
+contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
     /**
      * @dev Struct representing an airdrop project.
      */
@@ -28,6 +28,13 @@ contract AerodumpOFTAdapter is OFTAdapter {
         bool isSentToRecipients;
         address[] recipients;
         uint256[] outgoingChainIds;
+    }
+
+    struct Recipient {
+        uint256 projectId;
+        uint256 dstChainId;
+        address recipient;
+        uint256 amountToSend;
     }
 
     /**
@@ -50,6 +57,8 @@ contract AerodumpOFTAdapter is OFTAdapter {
      */
     Project[] internal projects;
 
+    Recipient[] internal equalDistributionQueue;
+
     /**
      * @dev A mapping from the address of a project owner to the project id in the struct.
      */
@@ -58,10 +67,11 @@ contract AerodumpOFTAdapter is OFTAdapter {
     /**
      * @dev Modifier to check if the user has a project.
      */
-    modifier shouldHaveAProject() {
+    modifier shouldHaveAnActiveProject() {
         require(
-            userIndexes[msg.sender] > 0,
-            "You dont have a project, create a project first!"
+            userIndexes[msg.sender] > 0 &&
+                projects[userIndexes[msg.sender]].isAirdropActive,
+            "You dont have an active project or your project isn't active!"
         );
         _;
     }
@@ -132,11 +142,34 @@ contract AerodumpOFTAdapter is OFTAdapter {
         );
     }
 
+    function queueAirdropWithEqualDistribution(
+        uint256 _projectId,
+        address[] memory _recipients,
+        uint256 _dstChainId
+    ) external shouldHaveAnActiveProject {
+        require(
+            projects[userIndexes[msg.sender]].amountLockedInContract > 0,
+            "Lock some money first!"
+        );
+        for (uint256 i = 0; i < _recipients.length; i++) {
+            equalDistributionQueue.push(
+                Recipient({
+                    projectId: _projectId,
+                    dstChainId: _dstChainId,
+                    recipient: _recipients[i],
+                    amountToSend: (
+                        projects[userIndexes[msg.sender]].amountLockedInContract
+                    ) / _recipients.length
+                })
+            );
+        }
+    }
+
     function creditTo(
         address _to,
         uint256 _amount,
         uint32 _chainId
-    ) external shouldHaveAProject {
+    ) external shouldHaveAnActiveProject {
         require(
             projects[userIndexes[msg.sender]].isAirdropActive,
             "Your project is not active!"
@@ -149,13 +182,58 @@ contract AerodumpOFTAdapter is OFTAdapter {
     }
 
     /**
+     *  @dev this method is called by the Chainlink Automation Nodes to check if `performUpkeep` must be done. Note that `checkData` is used to segment the computation to subarrays.
+     *  @dev `checkData` is an encoded binary data and which contains the lower bound and upper bound on which to perform the computation
+     *  @dev return `upkeepNeeded`if rebalancing must be done and `performData` which contains an array of indexes that require rebalancing and their increments. This will be used in `performUpkeep`
+     */
+    function checkUpkeep(
+        bytes calldata /* checkData */
+    )
+        external
+        view
+        override
+        returns (bool upkeepNeeded, bytes memory performData)
+    {
+        if (equalDistributionQueue.length == 0) {
+            upkeepNeeded = false;
+            return (upkeepNeeded, "null");
+        } else {
+            upkeepNeeded = true;
+
+            return (upkeepNeeded, "null");
+        }
+    }
+
+    /**
+     *  @dev this method is called by the Automation Nodes. it increases all elements whose balances are lower than the LIMIT. Note that the elements are bounded by `lowerBound`and `upperBound`
+     *  (provided by `performData`
+     *  @dev `performData` is an encoded binary data which contains the lower bound and upper bound of the subarray on which to perform the computation.
+     *  it also contains the increments
+     *  @dev return `upkeepNeeded`if rebalancing must be done and `performData` which contains an array of increments. This will be used in `performUpkeep`
+     */
+    function performUpkeep(bytes calldata performData) external override {
+        // (uint256[] memory indexes, uint256[] memory increments) = abi.decode(
+        //     performData,
+        //     (uint256[], uint256[])
+        // );
+        // uint256 _balance;
+        // uint256 _liquidity = liquidity;
+        // for (uint256 i = 0; i < indexes.length; i++) {
+        //     _balance = balances[indexes[i]] + increments[i];
+        //     _liquidity -= increments[i];
+        //     balances[indexes[i]] = _balance;
+        // }
+        // liquidity = _liquidity;
+    }
+
+    /**
      * @notice Returns the project details for the project owner.
      * @return Project struct.
      */
     function getProjectDetailsForProjectOwner()
         public
         view
-        shouldHaveAProject
+        shouldHaveAnActiveProject
         returns (Project memory)
     {
         return projects[userIndexes[msg.sender]];
