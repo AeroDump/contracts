@@ -21,7 +21,7 @@ contract OFTAdapterScript is Script {
             address(adapter),
             2 * 1e6
         );
-        adapter.debitFrom(2 * 1e6, 1 * 1e6, uint32(84532));
+        adapter.lockTokens(12345, 2 * 1e6, 1 * 1e6, uint32(84532));
         vm.stopBroadcast();
         console.log(
             "now our contract owns this much usdc",
@@ -30,11 +30,11 @@ contract OFTAdapterScript is Script {
             )
         );
         console.log("now we are crediting to another wallet");
-        adapter.creditTo(
-            0x6680dfD1c6A4867476b2e60dA89354AC93272878,
-            2 * 1e6,
-            uint32(84532)
-        );
+        // adapter.creditTo(
+        //     0x6680dfD1c6A4867476b2e60dA89354AC93272878,
+        //     2 * 1e6,
+        //     uint32(84532)
+        // );
         console.log(
             "credited, balance of new user is ",
             IERC20(vm.envAddress("BASE_SEPOLIA_USDC")).balanceOf(

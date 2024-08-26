@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.20;
 
 import {OFTAdapter} from "@layerzerolabs/oft-evm/contracts/OFTAdapter.sol";
@@ -19,7 +18,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
     /**
      * @dev Struct representing an airdrop project.
      */
-    struct Project {
+    struct project {
         bool isAirdropActive;
         uint256 projectId;
         address ownerOfTheProject;
@@ -27,12 +26,15 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         uint256 incomingChainId;
         bool isSentToRecipients;
         address[] recipients;
-        uint256[] outgoingChainIds;
+        uint32[] outgoingChainIds;
     }
 
+    /**
+     * @dev Struct representing recipient details.
+     */
     struct Recipient {
         uint256 projectId;
-        uint256 dstChainId;
+        uint32 dstChainId;
         address recipient;
         uint256 amountToSend;
     }
@@ -48,21 +50,40 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
     );
 
     /**
+     * @dev Emitted when tokens are credited to a recipient.
+     */
+    event AerodumpOFTAdapter__TokensCredited(
+        address recipient,
+        uint256 amount,
+        uint256 dstChainId
+    );
+
+    /**
      * @dev Gobal counter for the project id
      */
-    uint256 internal PROJECT_ID;
+    uint256 public PROJECT_ID;
+
+    /**
+     * @dev Gobal counter indicating the starting index of the equal distribution queue.
+     */
+    uint256 public equalDistributionQueueFrontIndex;
 
     /**
      * @dev An arry of "Project" structs.
      */
-    Project[] internal projects;
+    project[] public projects;
 
-    Recipient[] internal equalDistributionQueue;
+    /**
+     * @dev An arry of "Recipient" structs that are waiting for airdrop with equal distribution.
+     */
+    Recipient[] public equalDistributionQueue;
 
     /**
      * @dev A mapping from the address of a project owner to the project id in the struct.
      */
     mapping(address => uint256) public userIndexes;
+
+    mapping(uint256 => address) public projectIdToOwner;
 
     /**
      * @dev Modifier to check if the user has a project.
@@ -87,7 +108,8 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         address _owner
     ) OFTAdapter(_token, _layerZeroEndpoint, _owner) Ownable(_owner) {
         PROJECT_ID = 1;
-        Project memory initialProject = Project({
+        equalDistributionQueueFrontIndex = 0;
+        project memory initialProject = project({
             isAirdropActive: false,
             projectId: 0,
             ownerOfTheProject: address(0),
@@ -95,7 +117,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
             incomingChainId: 0,
             isSentToRecipients: false,
             recipients: new address[](0), // Empty address array
-            outgoingChainIds: new uint256[](0) // Empty uint256 array
+            outgoingChainIds: new uint32[](0) // Empty uint256 array
         });
         projects.push(initialProject);
     }
@@ -109,17 +131,24 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
      * @param _amount Amount of tokens to be locked in this contract in local decimals.
      * @param _minAmount Min amount of tokens to be locked in this contract in local decimals.
      * @param _dstChainId ChainId of the chain that the tokens are on.
+     * @return amountSent Amount of tokens sent by the caller.
+     * @return amountRecievedByRemote Amount of tokens received by remote(layerzero/this contract) .
      */
     function lockTokens(
         uint256 _projectId,
         uint256 _amount,
         uint256 _minAmount,
         uint32 _dstChainId
-    ) external {
-        _debit(msg.sender, _amount, _minAmount, _dstChainId);
+    ) external returns (uint256 amountSent, uint256 amountRecievedByRemote) {
+        (amountSent, amountRecievedByRemote) = _debit(
+            msg.sender,
+            _amount,
+            _minAmount,
+            _dstChainId
+        );
 
         if (userIndexes[msg.sender] == 0) {
-            Project memory temp;
+            project memory temp;
             temp.isAirdropActive = true;
             temp.projectId = _projectId;
             temp.ownerOfTheProject = msg.sender;
@@ -127,9 +156,10 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
             temp.incomingChainId = _dstChainId;
             temp.isSentToRecipients = false;
             temp.recipients = new address[](0);
-            temp.outgoingChainIds = new uint256[](0);
+            temp.outgoingChainIds = new uint32[](0);
             projects.push(temp);
             userIndexes[msg.sender] = PROJECT_ID;
+            projectIdToOwner[_projectId] = msg.sender;
             PROJECT_ID = PROJECT_ID + 1;
         } else {
             projects[userIndexes[msg.sender]].amountLockedInContract += _amount;
@@ -140,16 +170,27 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
             _amount,
             _dstChainId
         );
+        return (amountSent, amountRecievedByRemote);
     }
 
+    /**
+     *
+     * @notice Queues all the recipients in the same project for airdrop with equal distribution.
+     * @dev Callable by the project owner.
+     * @param _recipients Recipients to be aidropped.
+     */
     function queueAirdropWithEqualDistribution(
         uint256 _projectId,
         address[] memory _recipients,
-        uint256 _dstChainId
+        uint32 _dstChainId
     ) external shouldHaveAnActiveProject {
         require(
             projects[userIndexes[msg.sender]].amountLockedInContract > 0,
             "Lock some money first!"
+        );
+        require(
+            _projectId == projects[userIndexes[msg.sender]].projectId,
+            "Wrong project!"
         );
         for (uint256 i = 0; i < _recipients.length; i++) {
             equalDistributionQueue.push(
@@ -165,26 +206,11 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         }
     }
 
-    function creditTo(
-        address _to,
-        uint256 _amount,
-        uint32 _chainId
-    ) external shouldHaveAnActiveProject {
-        require(
-            projects[userIndexes[msg.sender]].isAirdropActive,
-            "Your project is not active!"
-        );
-        require(
-            projects[userIndexes[msg.sender]].amountLockedInContract > 0,
-            "You have no tokens to credit!"
-        );
-        _credit(_to, _amount, _chainId);
-    }
-
     /**
      *  @dev this method is called by the Chainlink Automation Nodes to check if `performUpkeep` must be done. Note that `checkData` is used to segment the computation to subarrays.
      *  @dev `checkData` is an encoded binary data and which contains the lower bound and upper bound on which to perform the computation
      *  @dev return `upkeepNeeded`if rebalancing must be done and `performData` which contains an array of indexes that require rebalancing and their increments. This will be used in `performUpkeep`
+     *  @dev Returns true when there are elements in the equalDistributionQueue.
      */
     function checkUpkeep(
         bytes calldata /* checkData */
@@ -205,6 +231,22 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
     }
 
     /**
+     * @dev This function is only for testing purposes.
+     */
+    function fakeCheckUpkeep(
+        bytes calldata /* checkData */
+    ) external view returns (bool upkeepNeeded, bytes memory performData) {
+        if (equalDistributionQueue.length == 0) {
+            upkeepNeeded = false;
+            return (upkeepNeeded, "null");
+        } else {
+            upkeepNeeded = true;
+
+            return (upkeepNeeded, "null");
+        }
+    }
+
+    /**
      *  @dev this method is called by the Automation Nodes. it increases all elements whose balances are lower than the LIMIT. Note that the elements are bounded by `lowerBound`and `upperBound`
      *  (provided by `performData`
      *  @dev `performData` is an encoded binary data which contains the lower bound and upper bound of the subarray on which to perform the computation.
@@ -212,18 +254,82 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
      *  @dev return `upkeepNeeded`if rebalancing must be done and `performData` which contains an array of increments. This will be used in `performUpkeep`
      */
     function performUpkeep(bytes calldata performData) external override {
-        // (uint256[] memory indexes, uint256[] memory increments) = abi.decode(
-        //     performData,
-        //     (uint256[], uint256[])
-        // );
-        // uint256 _balance;
-        // uint256 _liquidity = liquidity;
-        // for (uint256 i = 0; i < indexes.length; i++) {
-        //     _balance = balances[indexes[i]] + increments[i];
-        //     _liquidity -= increments[i];
-        //     balances[indexes[i]] = _balance;
-        // }
-        // liquidity = _liquidity;
+        require(
+            equalDistributionQueueFrontIndex < equalDistributionQueue.length,
+            "Array out of bounds"
+        );
+        uint256 amountRecieved = creditTo(
+            equalDistributionQueue[equalDistributionQueueFrontIndex].recipient,
+            equalDistributionQueue[equalDistributionQueueFrontIndex]
+                .amountToSend,
+            equalDistributionQueue[equalDistributionQueueFrontIndex].dstChainId
+        );
+        projects[
+            userIndexes[
+                projectIdToOwner[
+                    equalDistributionQueue[equalDistributionQueueFrontIndex]
+                        .projectId
+                ]
+            ]
+        ].amountLockedInContract -= amountRecieved;
+        projects[
+            userIndexes[
+                projectIdToOwner[
+                    equalDistributionQueue[equalDistributionQueueFrontIndex]
+                        .projectId
+                ]
+            ]
+        ].isSentToRecipients = true;
+        delete equalDistributionQueue[equalDistributionQueueFrontIndex];
+        equalDistributionQueueFrontIndex++;
+    }
+
+    /**
+     * @dev This function should be only used for testing purposes.
+     */
+    function fakePerformUpkeep(bytes calldata /*performData */) external {
+        require(
+            equalDistributionQueueFrontIndex < equalDistributionQueue.length,
+            "Array out of bounds"
+        );
+        uint256 amountRecieved = creditTo(
+            equalDistributionQueue[equalDistributionQueueFrontIndex].recipient,
+            equalDistributionQueue[equalDistributionQueueFrontIndex]
+                .amountToSend,
+            equalDistributionQueue[equalDistributionQueueFrontIndex].dstChainId
+        );
+        projects[
+            userIndexes[
+                projectIdToOwner[
+                    equalDistributionQueue[equalDistributionQueueFrontIndex]
+                        .projectId
+                ]
+            ]
+        ].amountLockedInContract -= amountRecieved;
+        projects[
+            userIndexes[
+                projectIdToOwner[
+                    equalDistributionQueue[equalDistributionQueueFrontIndex]
+                        .projectId
+                ]
+            ]
+        ].isSentToRecipients = true;
+        delete equalDistributionQueue[equalDistributionQueueFrontIndex];
+        equalDistributionQueueFrontIndex++;
+    }
+
+    /**
+     * @notice Credits tokens to the recipient.
+     * @dev Integrated with LayerZero.
+     */
+    function creditTo(
+        address _to,
+        uint256 _amount,
+        uint32 _chainId
+    ) internal returns (uint256 amountRecieved) {
+        amountRecieved = _credit(_to, _amount, _chainId);
+        emit AerodumpOFTAdapter__TokensCredited(msg.sender, _amount, _chainId);
+        return amountRecieved;
     }
 
     /**
@@ -234,7 +340,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         public
         view
         shouldHaveAnActiveProject
-        returns (Project memory)
+        returns (project memory)
     {
         return projects[userIndexes[msg.sender]];
     }
