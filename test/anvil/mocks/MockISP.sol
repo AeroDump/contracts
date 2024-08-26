@@ -77,4 +77,5 @@ contract MockISP is IVersionable {
     }
 
     // Implement missing functions like attestBatch, revokeBatch, etc. based on the ISP interface
+    function version() external pure override returns (string memory) { }
 }
