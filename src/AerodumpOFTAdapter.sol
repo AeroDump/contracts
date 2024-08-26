@@ -9,6 +9,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  * @title AerodumpOFTAdapter
  * @author Aerodump
  * @notice This contract integrates with LayerZero protocol to inherit the vault standards for managing airdrop transactions.
+ * @notice This contract also integrates with chainlink automation to automate the transfer of rewards to recipients.
  * @dev This contract extends the OFTAdapter contract.
  * @dev Using an existing ERC20 token, this contract can be deployed on different addresses for different tokens.
  * @dev Consider we give in USDC address in constructor, airdrop will be done using *only* USDC.
@@ -127,6 +128,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
      * @notice Only verified projects and verified project owners with sign KYC are allowed to call this function.
      * @notice Locked tokens can alse be updated by calling this function again.
      * @dev Tokens will remain locked untill the owner calls creditTo().
+     * @dev Integrated with LayerZero.
      * @param _projectId ProjectId of the project the airdrop is associated with.
      * @param _amount Amount of tokens to be locked in this contract in local decimals.
      * @param _minAmount Min amount of tokens to be locked in this contract in local decimals.
@@ -140,6 +142,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         uint256 _minAmount,
         uint32 _dstChainId
     ) external returns (uint256 amountSent, uint256 amountRecievedByRemote) {
+        //LayerZero function _debit that handles the actual debit using vault standards.
         (amountSent, amountRecievedByRemote) = _debit(
             msg.sender,
             _amount,
@@ -177,6 +180,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
      *
      * @notice Queues all the recipients in the same project for airdrop with equal distribution.
      * @dev Callable by the project owner.
+     * @dev FOR FE DEVS, METHOD WITH PASING ADDRESSES WITH COMMA AND EQUAL DISTRIBUTION, NO CSV.
      * @param _recipients Recipients to be aidropped.
      */
     function queueAirdropWithEqualDistribution(
@@ -253,7 +257,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
      *  it also contains the increments
      *  @dev return `upkeepNeeded`if rebalancing must be done and `performData` which contains an array of increments. This will be used in `performUpkeep`
      */
-    function performUpkeep(bytes calldata performData) external override {
+    function performUpkeep(bytes calldata /*performData*/) external override {
         require(
             equalDistributionQueueFrontIndex < equalDistributionQueue.length,
             "Array out of bounds"
@@ -285,7 +289,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
     }
 
     /**
-     * @dev This function should be only used for testing purposes.
+     * @dev This function is only for testing purposes.
      */
     function fakePerformUpkeep(bytes calldata /*performData */) external {
         require(
@@ -327,6 +331,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         uint256 _amount,
         uint32 _chainId
     ) internal returns (uint256 amountRecieved) {
+        //LayerZero function _credit that handles the actual credit to recipients using vault standards.
         amountRecieved = _credit(_to, _amount, _chainId);
         emit AerodumpOFTAdapter__TokensCredited(msg.sender, _amount, _chainId);
         return amountRecieved;

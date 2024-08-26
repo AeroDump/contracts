@@ -66,13 +66,12 @@ contract AerodumpOFTAdapterTest is StdCheats, StdUtils, Test, Script {
         recipients.push(recipient3);
         recipients.push(recipient4);
         usdc.approve(address(adapter), 20 * 1e6);
-        (uint256 amountSent, uint256 amountRecievedByRemote) = adapter
-            .lockTokens(
-                1357,
-                20 * 1e6,
-                19 * 1e6,
-                uint32(vm.envUint("BASE_SEPOLIA_CHAIN_ID"))
-            );
+        adapter.lockTokens(
+            1357,
+            20 * 1e6,
+            19 * 1e6,
+            uint32(vm.envUint("BASE_SEPOLIA_CHAIN_ID"))
+        );
         adapter.queueAirdropWithEqualDistribution(
             1357,
             recipients,
