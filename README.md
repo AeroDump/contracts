@@ -5,6 +5,10 @@ Our multi-sender platform goes beyond simple bulk transfers by offering support 
 ![image](https://github.com/user-attachments/assets/e42cce5a-4601-4c80-af1d-5902c02936e8)
 
 ## Key Features of this Flow:
+**Easy Onboarding with Web3Auth:** 
+- Web3Auth simplifies the login process by allowing users and project owners to use their social accounts for `secure and quick access` to the platform.
+- This lowers the barrier for entry, especially for those unfamiliar with complex Web3 wallet setups.
+
 **Hands-Free Automation with Multi-Network Support:**
 - Chainlink Automation allows for `automatic triggering` of the token distribution from the LayerZero vault, while `Chainlink CCIP` ensures that tokens can be distributed across `multiple networks`. This enables cross-chain token distribution without the need for constant developer or operator intervention.
 
