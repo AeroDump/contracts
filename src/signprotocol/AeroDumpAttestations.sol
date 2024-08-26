@@ -18,7 +18,11 @@ contract AeroDumpAttestations is Ownable {
     ISP public spInstance;
 
     // @dev Custom error for when a user is not authorized to verify a project.
-    error NotAuthorizedToVerify();
+    error ProjectIsVerified();
+    error ProjectNameCannotBeEmpty();
+    error ProjectDescriptionCannotBeEmpty();
+    error WebsiteURLCannotBeEmpty();
+    error SocialMediaURLCannotBeEmpty();
 
     // @dev Schema IDs for different types of attestations.
     uint64 public projectSchemaId;
@@ -29,7 +33,7 @@ contract AeroDumpAttestations is Ownable {
     uint64 public airdropExecutionSchemaId;
 
     // @dev Mapping of addresses to boolean indicating whether they are verified project managers.
-    mapping(address => bool) private s_verifiers;
+    mapping(address => bool) private s_isVerified;
 
     /**
      * @dev Constructor initializes the Sign Protocol instance.
@@ -70,15 +74,6 @@ contract AeroDumpAttestations is Ownable {
     }
 
     /**
-     * @notice Adds a new verifier to the list of authorized addresses.
-     * @dev Only callable by the contract owner.
-     * @param verifier The address to add as a verified project manager.
-     */
-    function addVerifier(address verifier) external onlyOwner {
-        s_verifiers[verifier] = true;
-    }
-
-    /**
      * @notice Registers a new project with the system.
      * @dev Creates an attestation for the project registration.
      * @param projectName The name of the project being registered.
@@ -103,17 +98,24 @@ contract AeroDumpAttestations is Ownable {
         spInstance.attest(a, "", "", "");
     }
 
-    /**
-     * @notice Verifies a registered project.
-     * @dev Creates an attestation for the verification process.
-     * @param projectName The name of the project being verified.
-     * @param projectOwner The address of the project owner.
-     */
-    function verifyProject(string memory projectName, address projectOwner) external {
-        require(s_verifiers[msg.sender], NotAuthorizedToVerify());
+    function verifyProject(
+        string memory projectName,
+        string memory projectDescription,
+        string memory websiteUrl,
+        string memory socialMediaUrl
+    )
+        external
+    {
+        require(!s_isVerified[msg.sender], ProjectIsVerified());
+
+        // Perform basic checks on the provided information
+        require(bytes(projectName).length > 0, ProjectNameCannotBeEmpty());
+        require(bytes(projectDescription).length > 0, ProjectDescriptionCannotBeEmpty());
+        require(bytes(websiteUrl).length > 0, WebsiteURLCannotBeEmpty());
+        require(bytes(socialMediaUrl).length > 0, SocialMediaURLCannotBeEmpty());
 
         bytes[] memory recipients = new bytes[](1);
-        recipients[0] = abi.encode(projectOwner);
+        recipients[0] = abi.encode(msg.sender);
 
         Attestation memory a = Attestation({
             schemaId: projectSchemaId,
@@ -125,10 +127,11 @@ contract AeroDumpAttestations is Ownable {
             dataLocation: DataLocation.ONCHAIN,
             revoked: false,
             recipients: recipients,
-            data: abi.encode(projectName, projectOwner, true, false) // name, owner, isVerified, hasRefundAgreement
-         });
+            data: abi.encode(projectName, msg.sender, true, false, projectDescription, websiteUrl, socialMediaUrl)
+        });
 
         spInstance.attest(a, "", "", "");
+        s_isVerified[msg.sender] = true;
     }
 
     /**
@@ -266,5 +269,9 @@ contract AeroDumpAttestations is Ownable {
          });
 
         spInstance.attest(a, "", "", "");
+    }
+
+    function checkVerificationStatus(address user) external view returns (bool) {
+        return s_isVerified[user];
     }
 }
