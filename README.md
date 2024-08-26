@@ -4,28 +4,12 @@ Our multi-sender platform goes beyond simple bulk transfers by offering support 
 # Process
 ![image](https://github.com/user-attachments/assets/e42cce5a-4601-4c80-af1d-5902c02936e8)
 
-# Our using the Tech
-
-**Support for Multiple Networks (Chainlink CCIP)**
-- Through Chainlink CCIP, we support token transfers across various networks such as EVM, SVM, and Move. This flexibility allows for seamless bulk transfers across multiple blockchains, rather than being limited to a single network.
-
-**Sign Protocol for Trust and Security**
-- When a project, rather than an individual user, sends large volumes of tokens for events or airdrops, Sign Protocol ensures that the project is official and trustworthy. By providing signatures and certifications, the project establishes transparency and guarantees safe token distribution.
-
-**ERC-4626-Based Asset Vault Service**
-- Using LayerZero's ERC-4626 standard, we offer a single asset vault service that allows projects to manage event or airdrop tokens efficiently. Projects can deposit tokens into the vault and distribute them in bulk as needed. This ensures stable rewards distribution to the community and enhances transparency in tokenomics.
- 
-**ENVIO**
-- After completing a multi-sender transaction, ENVIO displays the transaction explorer on the history page, offering users a clear view of transaction records.
-
-**XMTP**
-- During a multi-send operation, XMTP continuously notifies registered wallet addresses of project marketing event newsletters. This ensures users receive important updates related to the project's activities.
-
-**Tableland for Data Storage and Management**
-- We use Tableland to store all wallet addresses and token quantities involved in multi-send transactions. When sending tokens in the future, previously used wallet addresses are flagged to prevent malicious behavior, such as administrators creating multiple wallets to exploit airdrops.
-
-**Galadriel AI-Powered Automatic Multi-Sender**
-- With Galadriel, project managers can pre-set deadlines, token quantities, and the number of user wallet addresses to receive the tokens. As the distribution date approaches, managers simply input the wallet addresses, and the AI automatically calculates the correct token amounts and sends them on the specified date. Essentially, this enables AI-driven automatic multi-sender functionality.
+## Key Features of this Flow:
+- **Hands-Free Automation with Multi-Network Support:** Chainlink Automation allows for `automatic triggering` of the token distribution from the LayerZero vault, while `Chainlink CCIP` ensures that tokens can be distributed across `multiple networks`. This enables cross-chain token distribution without the need for constant developer or operator intervention.
+- **Cross-Chain Flexibility:** With Chainlink CCIP, users or project owners can distribute tokens across various networks like `Ethereum, Solana, Avalanche`, and others. The tokens are `bridged seamlessly` to the chosen network during the distribution process.
+- **CSV File Management:** The user uploads a CSV file containing recipient information (address, token amount, and network). This data is used by the automation to ensure accurate and efficient distribution across networks.
+- **LayerZero Vault for Secure Holding:** The vault securely holds the tokens until the automation system triggers distribution. Tokens are only released when the conditions are met, ensuring safety and transparency.
+- **Scalability and Efficiency:** By leveraging both `Chainlink Automation` and `CCIP`, the system scales to handle bulk token transfers across various blockchains without the need for manual monitoring or intervention.
 
 <details>
 <summary>
