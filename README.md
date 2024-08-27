@@ -1,3 +1,30 @@
+# AeroDump: Revolutionizing Token Distribution
+`AeroDump` is a cutting-edge platform designed to simplify and automate the distribution of tokens for users and project owners across multiple blockchain networks. 
+Built to support airdrops, marketing event rewards, and large-scale token transfers, AeroDump leverages the power of automation, cross-chain interoperability, and secure vaults to provide an efficient, hands-free solution for bulk token distribution.
+
+# Process
+![image](https://github.com/user-attachments/assets/e42cce5a-4601-4c80-af1d-5902c02936e8)
+
+## Key Features of this Flow:
+**Easy Onboarding with Web3Auth:** 
+- Web3Auth simplifies the login process by allowing users and project owners to use their social accounts for `secure and quick access` to the platform.
+- This lowers the barrier for entry, especially for those unfamiliar with complex Web3 wallet setups.
+
+**Hands-Free Automation with Multi-Network Support:**
+- Chainlink Automation allows for `automatic triggering` of the token distribution from the LayerZero vault, while `Chainlink CCIP` ensures that tokens can be distributed across `multiple networks`. This enables cross-chain token distribution without the need for constant developer or operator intervention.
+
+**Cross-Chain Flexibility:**
+- With Chainlink CCIP, users or project owners can distribute tokens across various networks like `Ethereum, Solana, Avalanche`, and others. The tokens are `bridged seamlessly` to the chosen network during the distribution process.
+
+**CSV File Management:**
+- The user uploads a CSV file containing recipient information (address, token amount, and network). This data is used by the automation to ensure accurate and efficient distribution across networks.
+
+**LayerZero Vault for Secure Holding:**
+- The vault securely holds the tokens until the automation system triggers distribution. Tokens are only released when the conditions are met, ensuring safety and transparency.
+
+**Scalability and Efficiency:**
+- By leveraging both `Chainlink Automation` and `CCIP`, the system scales to handle bulk token transfers across various blockchains without the need for manual monitoring or intervention.
+
 ## Foundry
 
 **Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
@@ -19,48 +46,3 @@ https://book.getfoundry.sh/
 
 ```shell
 $ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
