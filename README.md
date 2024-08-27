@@ -25,13 +25,9 @@ Built to support airdrops, marketing event rewards, and large-scale token transf
 **Scalability and Efficiency:**
 - By leveraging both `Chainlink Automation` and `CCIP`, the system scales to handle bulk token transfers across various blockchains without the need for manual monitoring or intervention.
 
-<details>
-<summary>
-  Foundry
-</summary>
-<div markdown="1">
+## Foundry
 
-  **Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
 
 Foundry consists of:
 
@@ -50,52 +46,3 @@ https://book.getfoundry.sh/
 
 ```shell
 $ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
-</div>
-</details>
-
-
