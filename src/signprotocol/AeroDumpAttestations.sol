@@ -26,6 +26,7 @@ contract AeroDumpAttestations is Ownable {
 
     // @dev Schema IDs for different types of attestations.
     uint64 public projectSchemaId;
+    uint64 public verifyProjectCertificateSchemaId;
     uint64 public csvUploadSchemaId;
     uint64 public tokenDepositSchemaId;
     uint64 public userConsentSchemaId;
@@ -56,6 +57,7 @@ contract AeroDumpAttestations is Ownable {
      */
     function setSchemaIds(
         uint64 _projectSchemaId,
+        uint64 _verifyProjectCertificateSchemaId,
         uint64 _csvUploadSchemaId,
         uint64 _tokenDepositSchemaId,
         uint64 _userConsentSchemaId,
@@ -66,6 +68,7 @@ contract AeroDumpAttestations is Ownable {
         onlyOwner
     {
         projectSchemaId = _projectSchemaId;
+        verifyProjectCertificateSchemaId = _verifyProjectCertificateSchemaId;
         csvUploadSchemaId = _csvUploadSchemaId;
         tokenDepositSchemaId = _tokenDepositSchemaId;
         userConsentSchemaId = _userConsentSchemaId;
@@ -118,7 +121,7 @@ contract AeroDumpAttestations is Ownable {
         recipients[0] = abi.encode(msg.sender);
 
         Attestation memory a = Attestation({
-            schemaId: projectSchemaId,
+            schemaId: verifyProjectCertificateSchemaId,
             linkedAttestationId: 0,
             attestTimestamp: 0,
             revokeTimestamp: 0,

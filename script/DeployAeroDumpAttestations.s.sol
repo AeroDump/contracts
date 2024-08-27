@@ -10,7 +10,7 @@ contract DeployAeroDumpAttestations is Script {
         HelperConfig helperConfig = new HelperConfig();
         HelperConfig.Config memory config;
 
-        if (block.chainid == 1337) {
+        if (block.chainid == 31_337) {
             config = helperConfig.getAnvilConfig();
         } else if (block.chainid == 115_155) {
             config = helperConfig.getSepoliaConfig();

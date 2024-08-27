@@ -7,16 +7,18 @@ import { MockISP } from "../test/anvil/mocks/MockISP.sol";
 
 contract HelperConfig is Script {
     uint64 public constant PROJECT_SCHEMA_ID = 1;
-    uint64 public constant CSV_UPLOAD_SCHEMA_ID = 2;
-    uint64 public constant TOKEN_DEPOSIT_SCHEMA_ID = 3;
-    uint64 public constant USER_CONSENT_SCHEMA_ID = 4;
-    uint64 public constant DISTRIBUTION_CERTIFICATE_SCHEMA_ID = 5;
-    uint64 public constant AIRDROP_EXECUTION_SCHEMA_ID = 6;
+    uint64 public constant VERIFY_PROJECT_CERTIFICATE_SCHEMA_ID = 2;
+    uint64 public constant CSV_UPLOAD_SCHEMA_ID = 3;
+    uint64 public constant TOKEN_DEPOSIT_SCHEMA_ID = 4;
+    uint64 public constant USER_CONSENT_SCHEMA_ID = 5;
+    uint64 public constant DISTRIBUTION_CERTIFICATE_SCHEMA_ID = 6;
+    uint64 public constant AIRDROP_EXECUTION_SCHEMA_ID = 7;
 
     address[] public verifierAddresses;
 
     struct Config {
         uint64 _projectSchemaId;
+        uint64 _verifyProjectCertificateSchemaId;
         uint64 _csvUploadSchemaId;
         uint64 _tokenDepositSchemaId;
         uint64 _userConsentSchemaId;
@@ -29,6 +31,7 @@ contract HelperConfig is Script {
     function getSepoliaConfig() public pure returns (Config memory) {
         Config memory SepoliaConfig = Config({
             _projectSchemaId: PROJECT_SCHEMA_ID,
+            _verifyProjectCertificateSchemaId: VERIFY_PROJECT_CERTIFICATE_SCHEMA_ID,
             _csvUploadSchemaId: CSV_UPLOAD_SCHEMA_ID,
             _tokenDepositSchemaId: TOKEN_DEPOSIT_SCHEMA_ID,
             _userConsentSchemaId: USER_CONSENT_SCHEMA_ID,
@@ -42,16 +45,16 @@ contract HelperConfig is Script {
 
     function getAnvilConfig() public returns (Config memory) {
         console2.log("testing on anvil");
-        MockISP mockISP = new MockISP();
         Config memory AnvilConfig = Config({
             _projectSchemaId: PROJECT_SCHEMA_ID,
+            _verifyProjectCertificateSchemaId: VERIFY_PROJECT_CERTIFICATE_SCHEMA_ID,
             _csvUploadSchemaId: CSV_UPLOAD_SCHEMA_ID,
             _tokenDepositSchemaId: TOKEN_DEPOSIT_SCHEMA_ID,
             _userConsentSchemaId: USER_CONSENT_SCHEMA_ID,
             _distributionCertificateSchemaId: DISTRIBUTION_CERTIFICATE_SCHEMA_ID,
             _airdropExecutionSchemaId: AIRDROP_EXECUTION_SCHEMA_ID,
             _initialOwner: address(1),
-            _ispAddress: address(mockISP)
+            _ispAddress: address(new MockISP())
         });
         return AnvilConfig;
     }
