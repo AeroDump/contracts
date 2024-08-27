@@ -3,11 +3,9 @@ pragma solidity 0.8.26;
 
 import { Test, console2 } from "forge-std/Test.sol";
 import { AeroDumpAttestations } from "../../src/signprotocol/AeroDumpAttestations.sol";
-import { MockISP } from "./mocks/MockISP.sol";
 
 contract TestAeroDumpAttestations is Test {
     AeroDumpAttestations public aeroDumpAttestations;
-    MockISP public mockISP;
     address public owner;
     address public user1;
     address public user2;
@@ -18,8 +16,7 @@ contract TestAeroDumpAttestations is Test {
         user2 = address(3);
 
         vm.startPrank(owner);
-        mockISP = new MockISP();
-        aeroDumpAttestations = new AeroDumpAttestations(owner, address(mockISP));
+        aeroDumpAttestations = new AeroDumpAttestations(owner, address(1));
 
         // Set schema IDs
         aeroDumpAttestations.setSchemaIds(1, 2, 3, 4, 5, 6, 7);
