@@ -101,6 +101,19 @@ contract AeroDumpAttestations is Ownable {
         spInstance.attest(a, "", "", "");
     }
 
+    /**
+     * @notice Verifies a project by recording detailed information.
+     * @dev Creates an attestation for project verification. This function can only be called once per address.
+     * @param projectName The name of the project being verified.
+     * @param projectDescription A detailed description of the project.
+     * @param websiteUrl The official website URL of the project.
+     * @param socialMediaUrl The social media URL associated with the project.
+     *  ProjectIsVerified if the caller's project is already verified.
+     *  ProjectNameCannotBeEmpty if the provided project name is empty.
+     *  ProjectDescriptionCannotBeEmpty if the provided project description is empty.
+     *  WebsiteURLCannotBeEmpty if the provided website URL is empty.
+     *  SocialMediaURLCannotBeEmpty if the provided social media URL is empty.
+     */
     function verifyProject(
         string memory projectName,
         string memory projectDescription,
@@ -139,10 +152,10 @@ contract AeroDumpAttestations is Ownable {
 
     /**
      * @notice Records a CSV file upload for a project.
-     * @dev Creates an attestation for the CSV file upload.
+     * @dev Creates an attestation for the CSV file upload, including file hash and recipient count.
      * @param projectName The name of the project associated with the CSV file.
-     * @param fileHash The hash of the uploaded CSV file.
-     * @param recipientCount The number of recipients for this upload.
+     * @param fileHash The hash of the uploaded CSV file for verification purposes.
+     * @param recipientCount The number of recipients included in this CSV upload.
      */
     function recordCSVFileUpload(string memory projectName, bytes32 fileHash, uint256 recipientCount) external {
         bytes[] memory recipients = new bytes[](1);
@@ -166,9 +179,9 @@ contract AeroDumpAttestations is Ownable {
 
     /**
      * @notice Records a token deposit for a project.
-     * @dev Creates an attestation for the token deposit.
+     * @dev Creates an attestation for the token deposit, including token address and amount.
      * @param projectName The name of the project associated with the token deposit.
-     * @param tokenAddress The address of the token being deposited.
+     * @param tokenAddress The address of the ERC20 token being deposited.
      * @param amount The amount of tokens being deposited.
      */
     function recordProjectTokenDeposit(string memory projectName, address tokenAddress, uint256 amount) external {
@@ -192,9 +205,9 @@ contract AeroDumpAttestations is Ownable {
     }
 
     /**
-     * @notice Records user consent for a project.
-     * @dev Creates an attestation for the user's consent.
-     * @param consentGiven A boolean indicating whether the user gave consent.
+     * @notice Records user consent for participating in projects.
+     * @dev Creates an attestation for the user's consent status.
+     * @param consentGiven A boolean indicating whether the user has given consent (true) or not (false).
      */
     function recordUserConsent(bool consentGiven) external {
         bytes[] memory recipients = new bytes[](1);
@@ -217,11 +230,11 @@ contract AeroDumpAttestations is Ownable {
     }
 
     /**
-     * @notice Issues a distribution certificate for a project.
-     * @dev Creates an attestation for the distribution certificate.
-     * @param projectName The name of the project receiving the distribution.
-     * @param totalAmount The total amount distributed.
-     * @param recipientCount The number of recipients for this distribution.
+     * @notice Issues a distribution certificate for a completed project distribution.
+     * @dev Creates an attestation for the distribution certificate, including total amount and recipient count.
+     * @param projectName The name of the project that completed the distribution.
+     * @param totalAmount The total amount of tokens distributed in this distribution event.
+     * @param recipientCount The number of recipients who received tokens in this distribution.
      */
     function issueDistributionCertificate(
         string memory projectName,
@@ -251,8 +264,8 @@ contract AeroDumpAttestations is Ownable {
 
     /**
      * @notice Signs a refund agreement for a project.
-     * @dev Creates an attestation for the signed refund agreement.
-     * @param projectName The name of the project associated with the refund agreement.
+     * @dev Creates or updates an attestation to indicate that a refund agreement has been signed.
+     * @param projectName The name of the project for which the refund agreement is being signed.
      */
     function signRefundAgreement(string memory projectName) external {
         bytes[] memory recipients = new bytes[](1);
@@ -274,6 +287,12 @@ contract AeroDumpAttestations is Ownable {
         spInstance.attest(a, "", "", "");
     }
 
+    /**
+     * @notice Checks the verification status of a user's project.
+     * @dev Returns whether the given address is associated with a verified project.
+     * @param user The address of the user to check.
+     * @return bool Returns true if the user's project is verified, false otherwise.
+     */
     function checkVerificationStatus(address user) external view returns (bool) {
         return s_isVerified[user];
     }
