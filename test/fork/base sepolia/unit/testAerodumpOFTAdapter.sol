@@ -3,6 +3,7 @@ import {StdCheats} from "forge-std/StdCheats.sol";
 import {StdUtils} from "forge-std/StdUtils.sol";
 import {Script} from "forge-std/Script.sol";
 import {AerodumpOFTAdapter} from "../../../../src/AerodumpOFTAdapter.sol";
+import {AeroDumpAttestations} from "../../../../src/signprotocol/AeroDumpAttestations.sol";
 import {HelperConfig} from "../../../../script/HelperConfig.s.sol";
 import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 
@@ -20,6 +21,7 @@ contract AerodumpOFTAdapterTest is StdCheats, StdUtils, Test, Script {
     address recipient4 = address(5);
     IERC20 public usdc;
     HelperConfig public helperconfig;
+    AeroDumpAttestations attestationscontract;
     AerodumpOFTAdapter public adapter;
     uint256 basesepoliafork;
     string BASE_SEPOLIA_RPC_URL = vm.envString("BASE_SEPOLIA_RPC_URL");
@@ -30,12 +32,18 @@ contract AerodumpOFTAdapterTest is StdCheats, StdUtils, Test, Script {
         vm.selectFork(basesepoliafork);
         usdc = IERC20(helperconfig.getBaseSepoliaConfig().tokenAddress);
         deal(address(usdc), projectOwner, 20 * 1e6);
-        vm.prank(owner);
+        vm.startPrank(owner);
+        attestationscontract = new AeroDumpAttestations(
+            owner,
+            helperconfig.getBaseSepoliaConfig()._ispAddress
+        );
         adapter = new AerodumpOFTAdapter(
             helperconfig.getBaseSepoliaConfig().tokenAddress,
             helperconfig.getBaseSepoliaConfig().layerZeroEndpoint,
-            msg.sender
+            msg.sender,
+            address(attestationscontract)
         );
+        vm.stopPrank();
     }
 
     function testLockTokens() public {
@@ -66,6 +74,7 @@ contract AerodumpOFTAdapterTest is StdCheats, StdUtils, Test, Script {
         recipients.push(recipient3);
         recipients.push(recipient4);
         usdc.approve(address(adapter), 20 * 1e6);
+        // attestationscontract.verifyProject();
         adapter.lockTokens(
             1357,
             20 * 1e6,

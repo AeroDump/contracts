@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import {OFTAdapter} from "@layerzerolabs/oft-evm/contracts/OFTAdapter.sol";
 import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {AeroDumpAttestations} from "./signprotocol/AeroDumpAttestations.sol";
 
 /**
  * @title AerodumpOFTAdapter
@@ -59,6 +60,8 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         uint256 dstChainId
     );
 
+    AeroDumpAttestations attestationContract;
+
     /**
      * @dev Gobal counter for the project id
      */
@@ -101,6 +104,14 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         _;
     }
 
+    modifier projectShouldBeVerified() {
+        require(
+            attestationContract.getIsProjectVerified(msg.sender),
+            "Project is not verified"
+        );
+        _;
+    }
+
     /**
      * @param _token Address of the existing ERC20 token that will be used for airdrops.
      * @param _layerZeroEndpoint LayerZero endpoint address
@@ -109,8 +120,12 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
     constructor(
         address _token,
         address _layerZeroEndpoint,
-        address _owner
+        address _owner,
+        address _aeroDumpAttestationsAddress
     ) OFTAdapter(_token, _layerZeroEndpoint, _owner) Ownable(_owner) {
+        attestationContract = AeroDumpAttestations(
+            _aeroDumpAttestationsAddress
+        );
         PROJECT_ID = 1;
         equalDistributionQueueFrontIndex = 0;
         project memory initialProject = project({
@@ -190,7 +205,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         uint256 _projectId,
         address[] memory _recipients,
         uint32 _dstChainId
-    ) external shouldHaveAnActiveProject {
+    ) external shouldHaveAnActiveProject projectShouldBeVerified {
         require(
             projects[userIndexes[msg.sender]].amountLockedInContract > 0,
             "Lock some money first!"

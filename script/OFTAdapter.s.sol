@@ -13,7 +13,8 @@ contract OFTAdapterScript is Script {
         AerodumpOFTAdapter adapter = new AerodumpOFTAdapter(
             vm.envAddress("BASE_SEPOLIA_USDC"),
             vm.envAddress("BASE_SEPOLIA_LAYERZERO_ENDPOINT"),
-            msg.sender
+            msg.sender,
+            address(0)
         );
         console.log("script running again");
         console.log("adapter", address(adapter));
