@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {ISP} from "@signprotocol/signprotocol-evm/src/interfaces/ISP.sol";
-import {Attestation} from "@signprotocol/signprotocol-evm/src/models/Attestation.sol";
-import {DataLocation} from "@signprotocol/signprotocol-evm/src/models/DataLocation.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ISP } from "@signprotocol/signprotocol-evm/src/interfaces/ISP.sol";
+import { Attestation } from "@signprotocol/signprotocol-evm/src/models/Attestation.sol";
+import { DataLocation } from "@signprotocol/signprotocol-evm/src/models/DataLocation.sol";
 
 /**
  * @title AeroDumpAttestations
@@ -27,24 +27,27 @@ contract AeroDumpAttestations is Ownable {
     // @dev Schema IDs for different types of attestations.
     uint64 public projectSchemaId;
     uint64 public verifyProjectCertificateSchemaId;
+    uint64 public kycVerificationSchemaId; // New schema for KYC verification
     uint64 public csvUploadSchemaId;
     uint64 public tokenDepositSchemaId;
     uint64 public userConsentSchemaId;
     uint64 public distributionCertificateSchemaId;
     uint64 public airdropExecutionSchemaId;
 
+    // @dev The next project ID to be assigned.
+    uint256 private nextProjectId;
+
     // @dev Mapping of addresses to boolean indicating whether they are verified project managers.
     mapping(address => bool) private s_isVerified;
-
+    mapping(address => bool) private s_isKYCVerified; // New mapping for KYC verification status
+    mapping(address => uint256) private s_projectIds; // Add this mapping to keep track of project IDs
     /**
      * @dev Constructor initializes the Sign Protocol instance.
      * @param initialOwner The address of the contract owner.
      * @param _spInstance The address of the Sign Protocol instance.
      */
-    constructor(
-        address initialOwner,
-        address _spInstance
-    ) Ownable(initialOwner) {
+
+    constructor(address initialOwner, address _spInstance) Ownable(initialOwner) {
         spInstance = ISP(_spInstance);
     }
 
@@ -52,6 +55,8 @@ contract AeroDumpAttestations is Ownable {
      * @notice Sets schema IDs for different types of attestations.
      * @dev This function must be called after deploying the contract to initialize the schema IDs.
      * @param _projectSchemaId Schema ID for project-related attestations.
+     * @param _verifyProjectCertificateSchemaId Schema ID for project verification attestations.
+     * @param _kycVerificationSchemaId Schema ID for KYC verification attestations.
      * @param _csvUploadSchemaId Schema ID for CSV file upload attestations.
      * @param _tokenDepositSchemaId Schema ID for token deposit attestations.
      * @param _userConsentSchemaId Schema ID for user consent attestations.
@@ -61,14 +66,19 @@ contract AeroDumpAttestations is Ownable {
     function setSchemaIds(
         uint64 _projectSchemaId,
         uint64 _verifyProjectCertificateSchemaId,
+        uint64 _kycVerificationSchemaId, // New parameter for KYC verification schema
         uint64 _csvUploadSchemaId,
         uint64 _tokenDepositSchemaId,
         uint64 _userConsentSchemaId,
         uint64 _distributionCertificateSchemaId,
         uint64 _airdropExecutionSchemaId
-    ) external onlyOwner {
+    )
+        external
+        onlyOwner
+    {
         projectSchemaId = _projectSchemaId;
         verifyProjectCertificateSchemaId = _verifyProjectCertificateSchemaId;
+        kycVerificationSchemaId = _kycVerificationSchemaId; // Set the new KYC verification schema ID
         csvUploadSchemaId = _csvUploadSchemaId;
         tokenDepositSchemaId = _tokenDepositSchemaId;
         userConsentSchemaId = _userConsentSchemaId;
@@ -119,20 +129,19 @@ contract AeroDumpAttestations is Ownable {
         string memory projectDescription,
         string memory websiteUrl,
         string memory socialMediaUrl
-    ) external {
+    )
+        external
+        returns (uint256 projectId)
+    {
         require(!s_isVerified[msg.sender], ProjectIsVerified());
 
         // Perform basic checks on the provided information
         require(bytes(projectName).length > 0, ProjectNameCannotBeEmpty());
-        require(
-            bytes(projectDescription).length > 0,
-            ProjectDescriptionCannotBeEmpty()
-        );
+        require(bytes(projectDescription).length > 0, ProjectDescriptionCannotBeEmpty());
         require(bytes(websiteUrl).length > 0, WebsiteURLCannotBeEmpty());
-        require(
-            bytes(socialMediaUrl).length > 0,
-            SocialMediaURLCannotBeEmpty()
-        );
+        require(bytes(socialMediaUrl).length > 0, SocialMediaURLCannotBeEmpty());
+
+        projectId = nextProjectId++;
 
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(msg.sender);
@@ -148,18 +157,41 @@ contract AeroDumpAttestations is Ownable {
             revoked: false,
             recipients: recipients,
             data: abi.encode(
-                projectName,
-                msg.sender,
-                true,
-                false,
-                projectDescription,
-                websiteUrl,
-                socialMediaUrl
+                projectId, projectName, msg.sender, true, false, projectDescription, websiteUrl, socialMediaUrl
             )
         });
 
         spInstance.attest(a, "", "", "");
         s_isVerified[msg.sender] = true;
+
+        return projectId;
+    }
+
+    /**
+     * @notice Records the KYC verification status for a user.
+     * @dev Creates an attestation for the user's KYC verification status.
+     * @param user The address of the user being verified.
+     * @param isVerified A boolean indicating whether the user has passed KYC verification (true) or not (false).
+     */
+    function recordKYCVerification(address user, bool isVerified) external onlyOwner {
+        bytes[] memory recipients = new bytes[](1);
+        recipients[0] = abi.encode(user);
+
+        Attestation memory a = Attestation({
+            schemaId: kycVerificationSchemaId,
+            linkedAttestationId: 0,
+            attestTimestamp: 0,
+            revokeTimestamp: 0,
+            attester: address(this),
+            validUntil: 0,
+            dataLocation: DataLocation.ONCHAIN,
+            revoked: false,
+            recipients: recipients,
+            data: abi.encode(user, isVerified, block.timestamp)
+        });
+
+        spInstance.attest(a, "", "", "");
+        s_isKYCVerified[user] = isVerified;
     }
 
     /**
@@ -169,11 +201,7 @@ contract AeroDumpAttestations is Ownable {
      * @param fileHash The hash of the uploaded CSV file for verification purposes.
      * @param recipientCount The number of recipients included in this CSV upload.
      */
-    function recordCSVFileUpload(
-        string memory projectName,
-        bytes32 fileHash,
-        uint256 recipientCount
-    ) external {
+    function recordCSVFileUpload(string memory projectName, bytes32 fileHash, uint256 recipientCount) external {
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(msg.sender);
 
@@ -187,13 +215,7 @@ contract AeroDumpAttestations is Ownable {
             dataLocation: DataLocation.ONCHAIN,
             revoked: false,
             recipients: recipients,
-            data: abi.encode(
-                projectName,
-                msg.sender,
-                fileHash,
-                block.timestamp,
-                recipientCount
-            )
+            data: abi.encode(projectName, msg.sender, fileHash, block.timestamp, recipientCount)
         });
 
         spInstance.attest(a, "", "", "");
@@ -206,11 +228,7 @@ contract AeroDumpAttestations is Ownable {
      * @param tokenAddress The address of the ERC20 token being deposited.
      * @param amount The amount of tokens being deposited.
      */
-    function recordProjectTokenDeposit(
-        string memory projectName,
-        address tokenAddress,
-        uint256 amount
-    ) external {
+    function recordProjectTokenDeposit(string memory projectName, address tokenAddress, uint256 amount) external {
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(msg.sender);
 
@@ -224,13 +242,7 @@ contract AeroDumpAttestations is Ownable {
             dataLocation: DataLocation.ONCHAIN,
             revoked: false,
             recipients: recipients,
-            data: abi.encode(
-                projectName,
-                msg.sender,
-                tokenAddress,
-                amount,
-                block.timestamp
-            )
+            data: abi.encode(projectName, msg.sender, tokenAddress, amount, block.timestamp)
         });
 
         spInstance.attest(a, "", "", "");
@@ -272,7 +284,9 @@ contract AeroDumpAttestations is Ownable {
         string memory projectName,
         uint256 totalAmount,
         uint256 recipientCount
-    ) external {
+    )
+        external
+    {
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(msg.sender);
 
@@ -286,12 +300,7 @@ contract AeroDumpAttestations is Ownable {
             dataLocation: DataLocation.ONCHAIN,
             revoked: false,
             recipients: recipients,
-            data: abi.encode(
-                projectName,
-                msg.sender,
-                totalAmount,
-                recipientCount
-            )
+            data: abi.encode(projectName, msg.sender, totalAmount, recipientCount)
         });
 
         spInstance.attest(a, "", "", "");
@@ -317,7 +326,7 @@ contract AeroDumpAttestations is Ownable {
             revoked: false,
             recipients: recipients,
             data: abi.encode(projectName, msg.sender, true, true) // name, owner, isVerified, hasRefundAgreement
-        });
+         });
 
         spInstance.attest(a, "", "", "");
     }
@@ -332,7 +341,27 @@ contract AeroDumpAttestations is Ownable {
         return s_isVerified[user];
     }
 
-    function getIsCsvUploaded() external view returns (bool) {}
+    /**
+     * @notice Checks the KYC verification status of a user.
+     * @dev Returns whether the given address has passed KYC verification.
+     * @param user The address of the user to check.
+     * @return bool Returns true if the user has passed KYC verification, false otherwise.
+     */
+    function isVerifiedWithKYC(address user) external view returns (bool) {
+        return s_isKYCVerified[user];
+    }
 
-    function getIsTokensLoked() external view returns (bool) {}
+    /**
+     * @notice Checks the project ID of a user.
+     * @dev Returns the ID of the project associated with the given user.
+     * @param user The address of the user to check.
+     * @return uint256 The ID of the project associated with the user.
+     */
+    function getProjectId(address user) external view returns (uint256) {
+        return s_projectIds[user];
+    }
+
+    function getIsCsvUploaded() external view returns (bool) { }
+
+    function getIsTokensLoked() external view returns (bool) { }
 }
