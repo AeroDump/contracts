@@ -84,6 +84,9 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
      */
     mapping(address => uint256) public userIndexes;
 
+    /**
+     * @dev A mapping from the project id to the project owner in the struct.
+     */
     mapping(uint256 => address) public projectIdToOwner;
 
     /**
