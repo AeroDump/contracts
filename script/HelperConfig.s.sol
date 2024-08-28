@@ -11,7 +11,6 @@ contract HelperConfig is Script {
         uint256 chainId;
         address tokenAddress;
         address layerZeroEndpoint;
-        uint64 _projectSchemaId;
         uint64 _verifyProjectCertificateSchemaId;
         uint64 _kycVerificationSchemaId;
         uint64 _csvUploadSchemaId;
@@ -46,7 +45,6 @@ contract HelperConfig is Script {
             chainId: vm.envUint("BASE_SEPOLIA_CHAIN_ID"),
             tokenAddress: vm.envAddress("BASE_SEPOLIA_USDC"),
             layerZeroEndpoint: vm.envAddress("BASE_SEPOLIA_LAYERZERO_ENDPOINT"),
-            _projectSchemaId: PROJECT_SCHEMA_ID,
             _verifyProjectCertificateSchemaId: VERIFY_PROJECT_CERTIFICATE_SCHEMA_ID,
             _kycVerificationSchemaId: KYC_VERIFICATION_SCHEMA_ID,
             _csvUploadSchemaId: CSV_UPLOAD_SCHEMA_ID,
@@ -66,7 +64,6 @@ contract HelperConfig is Script {
             chainId: 0,
             tokenAddress: address(5),
             layerZeroEndpoint: address(6),
-            _projectSchemaId: PROJECT_SCHEMA_ID,
             _verifyProjectCertificateSchemaId: VERIFY_PROJECT_CERTIFICATE_SCHEMA_ID,
             _kycVerificationSchemaId: KYC_VERIFICATION_SCHEMA_ID,
             _csvUploadSchemaId: CSV_UPLOAD_SCHEMA_ID,

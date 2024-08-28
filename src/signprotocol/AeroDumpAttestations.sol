@@ -307,25 +307,25 @@ contract AeroDumpAttestations is Ownable {
      * @dev Creates or updates an attestation to indicate that a refund agreement has been signed.
      * @param projectName The name of the project for which the refund agreement is being signed.
      */
-    function signRefundAgreement(string memory projectName) external {
-        bytes[] memory recipients = new bytes[](1);
-        recipients[0] = abi.encode(msg.sender);
+    // function signRefundAgreement(string memory projectName) external {
+    //     bytes[] memory recipients = new bytes[](1);
+    //     recipients[0] = abi.encode(msg.sender);
 
-        Attestation memory a = Attestation({
-            schemaId: projectSchemaId,
-            linkedAttestationId: 0,
-            attestTimestamp: 0,
-            revokeTimestamp: 0,
-            attester: address(this),
-            validUntil: 0,
-            dataLocation: DataLocation.ONCHAIN,
-            revoked: false,
-            recipients: recipients,
-            data: abi.encode(projectName, msg.sender, true, true) // name, owner, isVerified, hasRefundAgreement
-         });
+    //     Attestation memory a = Attestation({
+    //         schemaId: projectSchemaId,
+    //         linkedAttestationId: 0,
+    //         attestTimestamp: 0,
+    //         revokeTimestamp: 0,
+    //         attester: address(this),
+    //         validUntil: 0,
+    //         dataLocation: DataLocation.ONCHAIN,
+    //         revoked: false,
+    //         recipients: recipients,
+    //         data: abi.encode(projectName, msg.sender, true, true) // name, owner, isVerified, hasRefundAgreement
+    //      });
 
-        spInstance.attest(a, "", "", "");
-    }
+    //     spInstance.attest(a, "", "", "");
+    // }
 
     /**
      * @notice Checks the verification status of a user's project.
