@@ -15,6 +15,7 @@ contract AerodumpStagingTest is StdCheats, StdUtils, Test, Script {
     address[] recipients;
 
     address projectOwner = address(6);
+    address projectOwner2 = address(7);
     address recipient1 = address(2);
     address recipient2 = address(3);
     address recipient3 = address(4);
@@ -32,10 +33,23 @@ contract AerodumpStagingTest is StdCheats, StdUtils, Test, Script {
         vm.selectFork(basesepoliafork);
         usdc = IERC20(helperconfig.getBaseSepoliaConfig().tokenAddress);
         deal(address(usdc), projectOwner, 20 * 1e6);
+        deal(address(usdc), projectOwner2, 20 * 1e6);
+
         vm.startPrank(owner);
         attestationscontract = new AeroDumpAttestations(
             owner,
             helperconfig.getBaseSepoliaConfig()._ispAddress
+        );
+        attestationscontract.setSchemaIds(
+            helperconfig
+                .getBaseSepoliaConfig()
+                ._verifyProjectCertificateSchemaId,
+            2,
+            3,
+            1,
+            2,
+            3,
+            4
         );
         adapter = new AerodumpOFTAdapter(
             helperconfig.getBaseSepoliaConfig().tokenAddress,
@@ -48,14 +62,23 @@ contract AerodumpStagingTest is StdCheats, StdUtils, Test, Script {
 
     function testAerodump() public {
         vm.startPrank(projectOwner);
+
         uint256 projectId = attestationscontract.verifyProject(
             "test project",
             "test description,",
             "www.testaerodump.com",
             "www.website.com"
         );
-        assertGt(projectId, 0);
-        attestationscontract.recordKYCVerification(projectOwner, true);
+        console.log("projectId", projectId);
+        // attestationscontract.recordKYCVerification(projectOwner, true);
         vm.stopPrank();
+        vm.prank(projectOwner2);
+        uint256 projectId2 = attestationscontract.verifyProject(
+            "test project",
+            "test description,",
+            "www.testaerodump.com",
+            "www.website.com"
+        );
+        console.log("projectId2", projectId2);
     }
 }

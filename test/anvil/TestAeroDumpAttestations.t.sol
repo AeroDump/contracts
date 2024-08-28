@@ -19,7 +19,7 @@ contract TestAeroDumpAttestations is Test {
         aeroDumpAttestations = new AeroDumpAttestations(owner, address(1));
 
         // Set schema IDs
-        aeroDumpAttestations.setSchemaIds(1, 2, 3, 4, 5, 6, 7, 8);
+        aeroDumpAttestations.setSchemaIds(1, 2, 3, 4, 5, 6, 7);
         vm.stopPrank();
     }
 

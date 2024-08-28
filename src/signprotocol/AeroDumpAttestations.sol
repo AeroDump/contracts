@@ -58,7 +58,6 @@ contract AeroDumpAttestations is Ownable {
     /**
      * @notice Sets schema IDs for different types of attestations.
      * @dev This function must be called after deploying the contract to initialize the schema IDs.
-     * @param _projectSchemaId Schema ID for project-related attestations.
      * @param _verifyProjectCertificateSchemaId Schema ID for project verification attestations.
      * @param _kycVerificationSchemaId Schema ID for KYC verification attestations.
      * @param _csvUploadSchemaId Schema ID for CSV file upload attestations.
@@ -68,7 +67,6 @@ contract AeroDumpAttestations is Ownable {
      * @param _airdropExecutionSchemaId Schema ID for airdrop execution attestations.
      */
     function setSchemaIds(
-        uint64 _projectSchemaId,
         uint64 _verifyProjectCertificateSchemaId,
         uint64 _kycVerificationSchemaId, // New parameter for KYC verification schema
         uint64 _csvUploadSchemaId,
@@ -77,7 +75,6 @@ contract AeroDumpAttestations is Ownable {
         uint64 _distributionCertificateSchemaId,
         uint64 _airdropExecutionSchemaId
     ) external onlyOwner {
-        projectSchemaId = _projectSchemaId;
         verifyProjectCertificateSchemaId = _verifyProjectCertificateSchemaId;
         kycVerificationSchemaId = _kycVerificationSchemaId; // Set the new KYC verification schema ID
         csvUploadSchemaId = _csvUploadSchemaId;
@@ -88,29 +85,29 @@ contract AeroDumpAttestations is Ownable {
     }
 
     /**
-     * @notice Registers a new project with the system.
-     * @dev Creates an attestation for the project registration.
-     * @param projectName The name of the project being registered.
-     */
-    function registerProject(string memory projectName) external {
-        bytes[] memory recipients = new bytes[](1);
-        recipients[0] = abi.encode(msg.sender);
+    //  * @notice Registers a new project with the system.
+    //  * @dev Creates an attestation for the project registration.
+    //  * @param projectName The name of the project being registered.
+    //  */
+    // function registerProject(string memory projectName) external {
+    //     bytes[] memory recipients = new bytes[](1);
+    //     recipients[0] = abi.encode(msg.sender);
 
-        Attestation memory a = Attestation({
-            schemaId: projectSchemaId,
-            linkedAttestationId: 0,
-            attestTimestamp: 0,
-            revokeTimestamp: 0,
-            attester: address(this),
-            validUntil: 0,
-            dataLocation: DataLocation.ONCHAIN,
-            revoked: false,
-            recipients: recipients,
-            data: abi.encode(projectName, msg.sender, false)
-        });
+    //     Attestation memory a = Attestation({
+    //         schemaId: projectSchemaId,
+    //         linkedAttestationId: 0,
+    //         attestTimestamp: 0,
+    //         revokeTimestamp: 0,
+    //         attester: address(this),
+    //         validUntil: 0,
+    //         dataLocation: DataLocation.ONCHAIN,
+    //         revoked: false,
+    //         recipients: recipients,
+    //         data: abi.encode(projectName, msg.sender, false)
+    //     });
 
-        spInstance.attest(a, "", "", "");
-    }
+    //     spInstance.attest(a, "", "", "");
+    // }
 
     /**
      * @notice Verifies a project by recording detailed information.
