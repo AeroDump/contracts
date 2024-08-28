@@ -23,8 +23,7 @@ contract HelperConfig is Script {
         address _ispAddress;
     }
 
-    uint64 public constant PROJECT_SCHEMA_ID = 1;
-    uint64 public constant VERIFY_PROJECT_CERTIFICATE_SCHEMA_ID = 2;
+    uint64 public constant VERIFY_PROJECT_CERTIFICATE_SCHEMA_ID = 0x125; //Full Schema Id: onchain_evm_84532_0x125
     uint64 public constant KYC_VERIFICATION_SCHEMA_ID = 3;
     uint64 public constant CSV_UPLOAD_SCHEMA_ID = 4;
     uint64 public constant TOKEN_DEPOSIT_SCHEMA_ID = 5;
