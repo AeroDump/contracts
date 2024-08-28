@@ -71,12 +71,19 @@ contract AeroDumpAttestations is Ownable {
         uint64 _userConsentSchemaId,
         uint64 _distributionCertificateSchemaId,
         uint64 _airdropExecutionSchemaId
+<<<<<<< HEAD
     )
         external
         onlyOwner
     {
         verifyUserCertificateSchemaId = _verifyProjectCertificateSchemaId;
         kycVerificationSchemaId = _kycVerificationSchemaId;
+=======
+    ) external onlyOwner {
+        verifyProjectCertificateSchemaId = _verifyProjectCertificateSchemaId;
+        kycVerificationSchemaId = _kycVerificationSchemaId; // Set the new KYC verification schema ID
+        csvUploadSchemaId = _csvUploadSchemaId;
+>>>>>>> 9f5d572 (AeroDump working lets go)
         tokenDepositSchemaId = _tokenDepositSchemaId;
         userConsentSchemaId = _userConsentSchemaId;
         distributionCertificateSchemaId = _distributionCertificateSchemaId;
@@ -84,10 +91,17 @@ contract AeroDumpAttestations is Ownable {
     }
 
     /**
+<<<<<<< HEAD
      * @notice Registers a new project with the system.
      * @dev Creates an attestation for the project registration.
      * @param projectName The name of the project being registered.
      */
+=======
+    //  * @notice Registers a new project with the system.
+    //  * @dev Creates an attestation for the project registration.
+    //  * @param projectName The name of the project being registered.
+    //  */
+>>>>>>> 9f5d572 (AeroDump working lets go)
     // function registerProject(string memory projectName) external {
     //     bytes[] memory recipients = new bytes[](1);
     //     recipients[0] = abi.encode(msg.sender);
