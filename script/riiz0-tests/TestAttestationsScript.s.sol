@@ -2,7 +2,7 @@
 pragma solidity 0.8.26;
 
 import "forge-std/Script.sol";
-import { AeroDumpAttestations } from "../src/signprotocol/AeroDumpAttestations.sol";
+import { AeroDumpAttestations } from "../../src/signprotocol/AeroDumpAttestations.sol";
 
 contract TestAttestationsScript is Script {
     function run() public {
