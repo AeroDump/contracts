@@ -30,14 +30,14 @@ Built to support airdrops, marketing event rewards, and large-scale token transf
 1. **Visit Platform and Log In**:
    - Log in easily using Web3Auth with your social accounts.
 
-2. **Register Project and Tokens (for Project Owners)**:
+2. **Register Project and Tokens**:
    - Enter project details, token information, and more.
 
-3. **Deposit Tokens**:
-   - Deposit the tokens into the LayerZero vault for distribution.
-
-4. **Upload CSV File**:
+3. **Upload CSV File**:
    - Upload a CSV file containing recipient addresses, token amounts, and network details or Users paste the address, token amounts, and network details into text box directly.
+
+4. **Deposit Tokens**:
+   - Deposit the tokens into the LayerZero vault for distribution.
 
 5. **Automated Token Distribution**:
    - Chainlink Automation distributes tokens to recipients based on the CSV file, with multi-chain support via Chainlink CCIP.
