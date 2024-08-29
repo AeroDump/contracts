@@ -13,7 +13,7 @@ contract TestOFTScript is Script {
             0x036CbD53842c5426634e7929541eC2318f3dCF7e,
             0x6EDCE65403992e310A62460808c4b910D972f10f,
             msg.sender,
-            address(1) //replace addreess(1) with actual attestation contract address
+            address(1) // @dev replace address(1) with actual attestation contract address
         );
         console.log("adapter", address(adapter));
         vm.stopBroadcast();
