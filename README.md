@@ -37,7 +37,7 @@ Built to support airdrops, marketing event rewards, and large-scale token transf
    - Deposit the tokens into the LayerZero vault for distribution.
 
 4. **Upload CSV File**:
-   - Upload a CSV file containing recipient addresses, token amounts, and network details.
+   - Upload a CSV file containing recipient addresses, token amounts, and network details or Users paste the address, token amounts, and network details into text box directly.
 
 5. **Automated Token Distribution**:
    - Chainlink Automation distributes tokens to recipients based on the CSV file, with multi-chain support via Chainlink CCIP.
