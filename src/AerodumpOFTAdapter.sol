@@ -96,11 +96,13 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         _;
     }
 
+    // @dev Modifier to check if the project is verified
     modifier projectShouldBeVerified() {
         require(attestationContract.getIsProjectVerified(msg.sender), "Project is not verified");
         _;
     }
 
+    // @dev Modifier to check if the project owner is KYC verified
     modifier projectOwnerShouldBeKYCVerified() {
         require(attestationContract.isVerifiedWithKYC(msg.sender), "Project owner is not KYC verified");
         _;
@@ -157,7 +159,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         uint32 _dstChainId
     )
         external
-        projectOwnerShouldBeKYCVerified
+        //projectOwnerShouldBeKYCVerified
         projectShouldBeVerified
         returns (uint256 amountSent, uint256 amountRecievedByRemote)
     {
@@ -182,7 +184,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
             projects[userIndexes[msg.sender]].amountLockedInContract += _amount;
         }
 
-        attestationContract.recordLockTokens(string(abi.encodePacked("Project ", _projectId)), tokenAddress, _amount);
+        attestationContract.recordLockTokens(_projectId, tokenAddress, _amount);
 
         emit AerodumpOFTAdapter__TokensLocked(msg.sender, _projectId, _amount, _dstChainId);
         return (amountSent, amountRecievedByRemote);
@@ -203,7 +205,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         external
         shouldHaveAnActiveProject
         projectShouldBeVerified
-        projectOwnerShouldBeKYCVerified
+    //projectOwnerShouldBeKYCVerified
     {
         require(projects[userIndexes[msg.sender]].amountLockedInContract > 0, "Lock some money first!");
         require(_projectId == projects[userIndexes[msg.sender]].projectId, "Wrong project!");

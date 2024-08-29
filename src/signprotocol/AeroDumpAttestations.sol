@@ -40,6 +40,7 @@ contract AeroDumpAttestations is Ownable {
     mapping(address => bool) private s_isVerified;
     mapping(address => bool) private s_isKYCVerified; // New mapping for KYC verification status
     mapping(address => uint256) private s_projectIds; // Add this mapping to keep track of project IDs
+    mapping(address => bool) private s_lockedTokens; // New mapping for locked tokens
 
     /**
      * @dev Constructor initializes the Sign Protocol instance.
@@ -224,11 +225,11 @@ contract AeroDumpAttestations is Ownable {
     /**
      * @notice Records a token deposit for a project.
      * @dev Creates an attestation for the token deposit, including token address and amount.
-     * @param projectName The name of the project associated with the token deposit.
+     * @param projectId The ID of the project associated with the token deposit.
      * @param tokenAddress The address of the ERC20 token being deposited.
      * @param amount The amount of tokens being deposited.
      */
-    function recordLockTokens(string memory projectName, address tokenAddress, uint256 amount) external {
+    function recordLockTokens(uint256 projectId, address tokenAddress, uint256 amount) external {
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(msg.sender);
 
@@ -242,7 +243,7 @@ contract AeroDumpAttestations is Ownable {
             dataLocation: DataLocation.ONCHAIN,
             revoked: false,
             recipients: recipients,
-            data: abi.encode(projectName, tokenAddress, amount)
+            data: abi.encode(projectId, tokenAddress, amount)
         });
 
         spInstance.attest(a, "", "", "");
@@ -361,7 +362,14 @@ contract AeroDumpAttestations is Ownable {
         return s_projectIds[user];
     }
 
-    function getIsCsvUploaded() external view returns (bool) { }
+    /**
+     * @notice Checks the locked tokens of a user.
+     * @dev Returns whether the given address has locked tokens.
+     * @return bool Returns true if the user has locked tokens, false otherwise.
+     */
+    function getIsTokensLoked() external view returns (bool) {
+        return s_lockedTokens[msg.sender];
+    }
 
-    function getIsTokensLoked() external view returns (bool) { }
+    function getIsCsvUploaded() external view returns (bool) { }
 }
