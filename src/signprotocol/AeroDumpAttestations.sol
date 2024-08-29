@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {ISP} from "@signprotocol/signprotocol-evm/src/interfaces/ISP.sol";
-import {Attestation} from "@signprotocol/signprotocol-evm/src/models/Attestation.sol";
-import {DataLocation} from "@signprotocol/signprotocol-evm/src/models/DataLocation.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ISP } from "@signprotocol/signprotocol-evm/src/interfaces/ISP.sol";
+import { Attestation } from "@signprotocol/signprotocol-evm/src/models/Attestation.sol";
+import { DataLocation } from "@signprotocol/signprotocol-evm/src/models/DataLocation.sol";
 
 /**
  * @title AeroDumpAttestations
@@ -25,9 +25,8 @@ contract AeroDumpAttestations is Ownable {
     error SocialMediaURLCannotBeEmpty();
 
     // @dev Schema IDs for different types of attestations.
-    uint64 public projectSchemaId;
-    uint64 public verifyProjectCertificateSchemaId;
-    uint64 public kycVerificationSchemaId; // New schema for KYC verification
+    uint64 public verifyUserCertificateSchemaId;
+    uint64 public kycVerificationSchemaId;
     uint64 public csvUploadSchemaId;
     uint64 public tokenDepositSchemaId;
     uint64 public userConsentSchemaId;
@@ -39,19 +38,24 @@ contract AeroDumpAttestations is Ownable {
 
     // @dev Mapping of addresses to boolean indicating whether they are verified project managers.
     mapping(address => bool) private s_isVerified;
+<<<<<<< HEAD
     mapping(address => bool) private s_isKYCVerified; // New mapping for KYC verification status
     mapping(address => uint256) private s_projectIds; // Add this mapping to keep track of project IDs
+=======
+
+    // @dev Mapping of addresses to boolean indicating whether they have KYC verified.
+    mapping(address => bool) private s_isKYCVerified;
+
+    // @dev Mapping of addresses to project IDs.
+    mapping(address => uint256) private s_projectIds;
+>>>>>>> origin/riiz0-dev
 
     /**
      * @dev Constructor initializes the Sign Protocol instance.
      * @param initialOwner The address of the contract owner.
      * @param _spInstance The address of the Sign Protocol instance.
      */
-
-    constructor(
-        address initialOwner,
-        address _spInstance
-    ) Ownable(initialOwner) {
+    constructor(address initialOwner, address _spInstance) Ownable(initialOwner) {
         spInstance = ISP(_spInstance);
     }
 
@@ -60,7 +64,6 @@ contract AeroDumpAttestations is Ownable {
      * @dev This function must be called after deploying the contract to initialize the schema IDs.
      * @param _verifyProjectCertificateSchemaId Schema ID for project verification attestations.
      * @param _kycVerificationSchemaId Schema ID for KYC verification attestations.
-     * @param _csvUploadSchemaId Schema ID for CSV file upload attestations.
      * @param _tokenDepositSchemaId Schema ID for token deposit attestations.
      * @param _userConsentSchemaId Schema ID for user consent attestations.
      * @param _distributionCertificateSchemaId Schema ID for distribution certificate attestations.
@@ -68,16 +71,31 @@ contract AeroDumpAttestations is Ownable {
      */
     function setSchemaIds(
         uint64 _verifyProjectCertificateSchemaId,
-        uint64 _kycVerificationSchemaId, // New parameter for KYC verification schema
+        uint64 _kycVerificationSchemaId,
+<<<<<<< HEAD
         uint64 _csvUploadSchemaId,
+=======
+>>>>>>> origin/riiz0-dev
         uint64 _tokenDepositSchemaId,
         uint64 _userConsentSchemaId,
         uint64 _distributionCertificateSchemaId,
         uint64 _airdropExecutionSchemaId
+<<<<<<< HEAD
+    )
+        external
+        onlyOwner
+    {
+<<<<<<< HEAD
+=======
+        verifyUserCertificateSchemaId = _verifyProjectCertificateSchemaId;
+        kycVerificationSchemaId = _kycVerificationSchemaId;
+=======
     ) external onlyOwner {
+>>>>>>> origin/riiz0-dev
         verifyProjectCertificateSchemaId = _verifyProjectCertificateSchemaId;
-        kycVerificationSchemaId = _kycVerificationSchemaId; // Set the new KYC verification schema ID
+        kycVerificationSchemaId = _kycVerificationSchemaId;
         csvUploadSchemaId = _csvUploadSchemaId;
+>>>>>>> 9f5d572 (AeroDump working lets go)
         tokenDepositSchemaId = _tokenDepositSchemaId;
         userConsentSchemaId = _userConsentSchemaId;
         distributionCertificateSchemaId = _distributionCertificateSchemaId;
@@ -85,10 +103,25 @@ contract AeroDumpAttestations is Ownable {
     }
 
     /**
+<<<<<<< HEAD
+     * //  * @notice Registers a new project with the system.
+     * //  * @dev Creates an attestation for the project registration.
+     * //  * @param projectName The name of the project being registered.
+     * //
+     */
+=======
+<<<<<<< HEAD
+     * @notice Registers a new project with the system.
+     * @dev Creates an attestation for the project registration.
+     * @param projectName The name of the project being registered.
+     */
+=======
     //  * @notice Registers a new project with the system.
     //  * @dev Creates an attestation for the project registration.
     //  * @param projectName The name of the project being registered.
     //  */
+>>>>>>> 9f5d572 (AeroDump working lets go)
+>>>>>>> origin/riiz0-dev
     // function registerProject(string memory projectName) external {
     //     bytes[] memory recipients = new bytes[](1);
     //     recipients[0] = abi.encode(msg.sender);
@@ -113,7 +146,7 @@ contract AeroDumpAttestations is Ownable {
      * @notice Verifies a project by recording detailed information.
      * @dev Creates an attestation for project verification. This function can only be called once per address.
      * @param projectName The name of the project being verified.
-     * @param projectDescription A detailed description of the project.
+     * @param description A detailed description of the project.
      * @param websiteUrl The official website URL of the project.
      * @param socialMediaUrl The social media URL associated with the project.
      *  ProjectIsVerified if the caller's project is already verified.
@@ -124,23 +157,20 @@ contract AeroDumpAttestations is Ownable {
      */
     function verifyProject(
         string memory projectName,
-        string memory projectDescription,
+        string memory description,
         string memory websiteUrl,
         string memory socialMediaUrl
-    ) external returns (uint256 projectId) {
+    )
+        external
+        returns (uint256 projectId)
+    {
         require(!s_isVerified[msg.sender], ProjectIsVerified());
 
         // Perform basic checks on the provided information
         require(bytes(projectName).length > 0, ProjectNameCannotBeEmpty());
-        require(
-            bytes(projectDescription).length > 0,
-            ProjectDescriptionCannotBeEmpty()
-        );
+        require(bytes(description).length > 0, ProjectDescriptionCannotBeEmpty());
         require(bytes(websiteUrl).length > 0, WebsiteURLCannotBeEmpty());
-        require(
-            bytes(socialMediaUrl).length > 0,
-            SocialMediaURLCannotBeEmpty()
-        );
+        require(bytes(socialMediaUrl).length > 0, SocialMediaURLCannotBeEmpty());
 
         projectId = nextProjectId++;
 
@@ -148,7 +178,7 @@ contract AeroDumpAttestations is Ownable {
         recipients[0] = abi.encode(msg.sender);
 
         Attestation memory a = Attestation({
-            schemaId: verifyProjectCertificateSchemaId,
+            schemaId: verifyUserCertificateSchemaId,
             linkedAttestationId: 0,
             attestTimestamp: 0,
             revokeTimestamp: 0,
@@ -157,20 +187,16 @@ contract AeroDumpAttestations is Ownable {
             dataLocation: DataLocation.ONCHAIN,
             revoked: false,
             recipients: recipients,
-            data: abi.encode(
-                projectId,
-                projectName,
-                msg.sender,
-                true,
-                false,
-                projectDescription,
-                websiteUrl,
-                socialMediaUrl
-            )
+<<<<<<< HEAD
+            data: abi.encode(projectName, projectDescription, websiteUrl, socialMediaUrl)
+=======
+            data: abi.encode(projectId, projectName, msg.sender, true, false, description, websiteUrl, socialMediaUrl)
+>>>>>>> origin/riiz0-dev
         });
 
         spInstance.attest(a, "", "", "");
         s_isVerified[msg.sender] = true;
+        s_projectIds[msg.sender] = projectId;
 
         return projectId;
     }
@@ -181,10 +207,7 @@ contract AeroDumpAttestations is Ownable {
      * @param user The address of the user being verified.
      * @param isVerified A boolean indicating whether the user has passed KYC verification (true) or not (false).
      */
-    function recordKYCVerification(
-        address user,
-        bool isVerified
-    ) external onlyOwner {
+    function recordKYCVerification(address user, bool isVerified) external onlyOwner {
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(user);
 
@@ -198,13 +221,14 @@ contract AeroDumpAttestations is Ownable {
             dataLocation: DataLocation.ONCHAIN,
             revoked: false,
             recipients: recipients,
-            data: abi.encode(user, isVerified, block.timestamp)
+            data: abi.encode(user, isVerified)
         });
 
         spInstance.attest(a, "", "", "");
         s_isKYCVerified[user] = isVerified;
     }
 
+    //UNDO
     /**
      * @notice Records a CSV file upload for a project.
      * @dev Creates an attestation for the CSV file upload, including file hash and recipient count.
@@ -212,11 +236,7 @@ contract AeroDumpAttestations is Ownable {
      * @param fileHash The hash of the uploaded CSV file for verification purposes.
      * @param recipientCount The number of recipients included in this CSV upload.
      */
-    function recordCSVFileUpload(
-        string memory projectName,
-        bytes32 fileHash,
-        uint256 recipientCount
-    ) external {
+    function recordCSVFileUpload(string memory projectName, bytes32 fileHash, uint256 recipientCount) external {
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(msg.sender);
 
@@ -230,13 +250,7 @@ contract AeroDumpAttestations is Ownable {
             dataLocation: DataLocation.ONCHAIN,
             revoked: false,
             recipients: recipients,
-            data: abi.encode(
-                projectName,
-                msg.sender,
-                fileHash,
-                block.timestamp,
-                recipientCount
-            )
+            data: abi.encode(projectName, fileHash, recipientCount)
         });
 
         spInstance.attest(a, "", "", "");
@@ -249,11 +263,7 @@ contract AeroDumpAttestations is Ownable {
      * @param tokenAddress The address of the ERC20 token being deposited.
      * @param amount The amount of tokens being deposited.
      */
-    function recordProjectTokenDeposit(
-        string memory projectName,
-        address tokenAddress,
-        uint256 amount
-    ) external {
+    function recordLockTokens(string memory projectName, address tokenAddress, uint256 amount) external {
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(msg.sender);
 
@@ -267,13 +277,7 @@ contract AeroDumpAttestations is Ownable {
             dataLocation: DataLocation.ONCHAIN,
             revoked: false,
             recipients: recipients,
-            data: abi.encode(
-                projectName,
-                msg.sender,
-                tokenAddress,
-                amount,
-                block.timestamp
-            )
+            data: abi.encode(projectName, tokenAddress, amount)
         });
 
         spInstance.attest(a, "", "", "");
@@ -298,7 +302,7 @@ contract AeroDumpAttestations is Ownable {
             dataLocation: DataLocation.ONCHAIN,
             revoked: false,
             recipients: recipients,
-            data: abi.encode(msg.sender, consentGiven, block.timestamp)
+            data: abi.encode(consentGiven)
         });
 
         spInstance.attest(a, "", "", "");
@@ -315,7 +319,9 @@ contract AeroDumpAttestations is Ownable {
         string memory projectName,
         uint256 totalAmount,
         uint256 recipientCount
-    ) external {
+    )
+        external
+    {
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(msg.sender);
 
@@ -329,12 +335,7 @@ contract AeroDumpAttestations is Ownable {
             dataLocation: DataLocation.ONCHAIN,
             revoked: false,
             recipients: recipients,
-            data: abi.encode(
-                projectName,
-                msg.sender,
-                totalAmount,
-                recipientCount
-            )
+            data: abi.encode(projectName, totalAmount, recipientCount)
         });
 
         spInstance.attest(a, "", "", "");
@@ -345,10 +346,11 @@ contract AeroDumpAttestations is Ownable {
      * @dev Creates or updates an attestation to indicate that a refund agreement has been signed.
      * @param projectName The name of the project for which the refund agreement is being signed.
      */
-    function signRefundAgreement(string memory projectName) external {
-        bytes[] memory recipients = new bytes[](1);
-        recipients[0] = abi.encode(msg.sender);
+    // function signRefundAgreement(string memory projectName) external {
+    //     bytes[] memory recipients = new bytes[](1);
+    //     recipients[0] = abi.encode(msg.sender);
 
+<<<<<<< HEAD
         Attestation memory a = Attestation({
             schemaId: projectSchemaId,
             linkedAttestationId: 0,
@@ -359,11 +361,25 @@ contract AeroDumpAttestations is Ownable {
             dataLocation: DataLocation.ONCHAIN,
             revoked: false,
             recipients: recipients,
-            data: abi.encode(projectName, msg.sender, true, true) // name, owner, isVerified, hasRefundAgreement
+            data: abi.encode(projectName)
         });
+=======
+    //     Attestation memory a = Attestation({
+    //         schemaId: projectSchemaId,
+    //         linkedAttestationId: 0,
+    //         attestTimestamp: 0,
+    //         revokeTimestamp: 0,
+    //         attester: address(this),
+    //         validUntil: 0,
+    //         dataLocation: DataLocation.ONCHAIN,
+    //         revoked: false,
+    //         recipients: recipients,
+    //         data: abi.encode(projectName, msg.sender, true, true) // name, owner, isVerified, hasRefundAgreement
+    //      });
+>>>>>>> origin/riiz0-dev
 
-        spInstance.attest(a, "", "", "");
-    }
+    //     spInstance.attest(a, "", "", "");
+    // }
 
     /**
      * @notice Checks the verification status of a user's project.
@@ -395,7 +411,7 @@ contract AeroDumpAttestations is Ownable {
         return s_projectIds[user];
     }
 
-    function getIsCsvUploaded() external view returns (bool) {}
+    function getIsCsvUploaded() external view returns (bool) { }
 
-    function getIsTokensLoked() external view returns (bool) {}
+    function getIsTokensLoked() external view returns (bool) { }
 }

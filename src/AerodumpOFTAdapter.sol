@@ -67,6 +67,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
      */
     uint256 public PROJECT_ID;
 
+    address public tokenAddress;
     /**
      * @dev Gobal counter indicating the starting index of the equal distribution queue.
      */
@@ -130,11 +131,21 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         address _layerZeroEndpoint,
         address _owner,
         address _aeroDumpAttestationsAddress
+<<<<<<< HEAD
+    )
+        OFTAdapter(_token, _layerZeroEndpoint, _owner)
+        Ownable(_owner)
+    {
+        tokenAddress = _token;
+        attestationContract = AeroDumpAttestations(_aeroDumpAttestationsAddress);
+        PROJECT_ID;
+=======
     ) OFTAdapter(_token, _layerZeroEndpoint, _owner) Ownable(_owner) {
         attestationContract = AeroDumpAttestations(
             _aeroDumpAttestationsAddress
         );
         PROJECT_ID = 1;
+>>>>>>> origin/riiz0-dev
         equalDistributionQueueFrontIndex = 0;
         project memory initialProject = project({
             isAirdropActive: false,
@@ -198,12 +209,19 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         } else {
             projects[userIndexes[msg.sender]].amountLockedInContract += _amount;
         }
+<<<<<<< HEAD
+
+        attestationContract.recordLockTokens(string(abi.encodePacked("Project ", _projectId)), tokenAddress, _amount);
+
+        emit AerodumpOFTAdapter__TokensLocked(msg.sender, _projectId, _amount, _dstChainId);
+=======
         emit AerodumpOFTAdapter__TokensLocked(
             msg.sender,
             _projectId,
             _amount,
             _dstChainId
         );
+>>>>>>> origin/riiz0-dev
         return (amountSent, amountRecievedByRemote);
     }
 
@@ -233,10 +251,14 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
             "Wrong project!"
         );
         for (uint256 i = 0; i < _recipients.length; i++) {
+<<<<<<< HEAD
+            require(attestationContract.isVerifiedWithKYC(_recipients[i]), "Recipient must do KYC!");
+=======
             require(
                 attestationContract.isVerifiedWithKYC(_recipients[i]),
                 "Recipient must do KYC!"
             );
+>>>>>>> origin/riiz0-dev
             equalDistributionQueue.push(
                 Recipient({
                     projectId: _projectId,

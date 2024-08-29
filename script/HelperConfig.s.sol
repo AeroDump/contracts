@@ -1,10 +1,10 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Script} from "forge-std/Script.sol";
-import {console} from "forge-std/Test.sol";
-import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
-import {TestAeroDumpAttestations} from "../test/anvil/TestAeroDumpAttestations.t.sol";
+import { Script } from "forge-std/Script.sol";
+import { console } from "forge-std/Test.sol";
+import { MockV3Aggregator } from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
+import { TestAeroDumpAttestations } from "../test/anvil/TestAeroDumpAttestations.t.sol";
 
 contract HelperConfig is Script {
     struct NetworkConfig {
@@ -22,13 +22,13 @@ contract HelperConfig is Script {
         address _ispAddress;
     }
 
-    uint64 public constant VERIFY_PROJECT_CERTIFICATE_SCHEMA_ID = 0x125; //Full Schema Id: onchain_evm_84532_0x125
-    uint64 public constant KYC_VERIFICATION_SCHEMA_ID = 3;
-    uint64 public constant CSV_UPLOAD_SCHEMA_ID = 4;
-    uint64 public constant TOKEN_DEPOSIT_SCHEMA_ID = 5;
-    uint64 public constant USER_CONSENT_SCHEMA_ID = 6;
-    uint64 public constant DISTRIBUTION_CERTIFICATE_SCHEMA_ID = 7;
-    uint64 public constant AIRDROP_EXECUTION_SCHEMA_ID = 8;
+    uint64 public constant VERIFY_PROJECT_CERTIFICATE_SCHEMA_ID = 293; //Correct Value
+    uint64 public constant KYC_VERIFICATION_SCHEMA_ID = 1;
+    uint64 public constant CSV_UPLOAD_SCHEMA_ID = 2;
+    uint64 public constant TOKEN_DEPOSIT_SCHEMA_ID = 298; //Correct Value
+    uint64 public constant USER_CONSENT_SCHEMA_ID = 3;
+    uint64 public constant DISTRIBUTION_CERTIFICATE_SCHEMA_ID = 4;
+    uint64 public constant AIRDROP_EXECUTION_SCHEMA_ID = 5;
     address[] public verifierAddresses;
     NetworkConfig public ActiveConfig;
 
@@ -54,8 +54,8 @@ contract HelperConfig is Script {
             _airdropExecutionSchemaId: AIRDROP_EXECUTION_SCHEMA_ID,
             _initialOwner: 0xfe63Ba8189215E5C975e73643b96066B6aD41A45,
             _ispAddress: 0x4e4af2a21ebf62850fD99Eb6253E1eFBb56098cD //0x878c92FD89d8E0B93Dc0a3c907A2adc7577e39c5 Sepolia
-            // testnet address
-        });
+                // testnet address
+         });
         return baseSepoliaConfig;
     }
 

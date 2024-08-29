@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {Test, console} from "forge-std/Test.sol";
-import {AeroDumpAttestations} from "../../src/signprotocol/AeroDumpAttestations.sol";
+import { Test, console } from "forge-std/Test.sol";
+import { AeroDumpAttestations } from "../../src/signprotocol/AeroDumpAttestations.sol";
 
 contract TestAeroDumpAttestations is Test {
     AeroDumpAttestations public aeroDumpAttestations;
@@ -19,7 +19,15 @@ contract TestAeroDumpAttestations is Test {
         aeroDumpAttestations = new AeroDumpAttestations(owner, address(1));
 
         // Set schema IDs
+<<<<<<< HEAD
+<<<<<<< HEAD
+        aeroDumpAttestations.setSchemaIds(2, 3, 4, 5, 6, 7);
+=======
+        aeroDumpAttestations.setSchemaIds(1, 2, 3, 4, 5, 6, 7, 8);
+>>>>>>> b0d9d62 (integrations with attestations and vault)
+=======
         aeroDumpAttestations.setSchemaIds(1, 2, 3, 4, 5, 6, 7);
+>>>>>>> 9f5d572 (AeroDump working lets go)
         vm.stopPrank();
     }
 
