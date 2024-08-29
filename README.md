@@ -25,6 +25,26 @@ Built to support airdrops, marketing event rewards, and large-scale token transf
 **Scalability and Efficiency:**
 - By leveraging both `Chainlink Automation` and `CCIP`, the system scales to handle bulk token transfers across various blockchains without the need for manual monitoring or intervention.
 
+
+## Simple User Journey
+1. **Visit Platform and Log In**:
+   - Log in easily using Web3Auth with your social accounts.
+
+2. **Register Project and Tokens (for Project Owners)**:
+   - Enter project details, token information, and more.
+
+3. **Deposit Tokens**:
+   - Deposit the tokens into the LayerZero vault for distribution.
+
+4. **Upload CSV File**:
+   - Upload a CSV file containing recipient addresses, token amounts, and network details.
+
+5. **Automated Token Distribution**:
+   - Chainlink Automation distributes tokens to recipients based on the CSV file, with multi-chain support via Chainlink CCIP.
+
+6. **Check Distribution History**:
+   - After completion, view all records on the history page using ENVIO on-chain indexing.
+
 ## Foundry
 
 **Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
