@@ -3,7 +3,7 @@
 Built to support airdrops, marketing event rewards, and large-scale token transfers, AeroDump leverages the power of automation, cross-chain interoperability, and secure vaults to provide an efficient, hands-free solution for bulk token distribution.
 
 # Process
-![image](https://github.com/user-attachments/assets/e42cce5a-4601-4c80-af1d-5902c02936e8)
+![image](https://github.com/user-attachments/assets/e0ff3dec-7b2e-4902-b3ba-45863128d3fc)
 
 ## Key Features of this Flow:
 **Easy Onboarding with Web3Auth:** 
