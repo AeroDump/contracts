@@ -1,4 +1,5 @@
 [profile.default]
+via_ir = true
 src = "src"
 out = "out"
 solc = "0.8.26"
@@ -9,7 +10,6 @@ build_info = true
 extra_output = ["storageLayout"]
 auto_detect_remappings = true
 gas_reports = ["*"]
-via_ir = true
 
 remappings = [
     '@layerzerolabs/oft-evm/=lib/devtools/packages/oft-evm/',
@@ -19,6 +19,7 @@ remappings = [
     '@chainlink/contracts=lib/chainlink-brownie-contracts/contracts',
     '@openzeppelin/openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/',
     '@signprotocol/signprotocol-evm/src/=lib/sign-protocol-evm/src/',
+    'forge-std=lib/forge-std/src',
 ]
 
 
