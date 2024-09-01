@@ -10,10 +10,7 @@ contract TestOFTScript is Script {
         vm.startBroadcast();
         console.log("script running");
         AerodumpOFTAdapter adapter = new AerodumpOFTAdapter(
-            0x036CbD53842c5426634e7929541eC2318f3dCF7e,
-            0x6EDCE65403992e310A62460808c4b910D972f10f,
-            msg.sender,
-            0xe734076F9B3C4Af1920e92B218B4C3691a1b02d7
+            0x6EDCE65403992e310A62460808c4b910D972f10f, msg.sender, 0xe734076F9B3C4Af1920e92B218B4C3691a1b02d7
         );
         console.log("adapter", address(adapter));
         vm.stopBroadcast();

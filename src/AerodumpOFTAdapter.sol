@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {OFTAdapter} from "@layerzerolabs/oft-evm/contracts/OFTAdapter.sol";
-import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {AeroDumpAttestations} from "./signprotocol/AeroDumpAttestations.sol";
+import { OFTAdapter } from "@layerzerolabs/oft-evm/contracts/OFTAdapter.sol";
+import { AutomationCompatibleInterface } from
+    "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { AeroDumpAttestations } from "./signprotocol/AeroDumpAttestations.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title AerodumpOFTAdapter
@@ -29,6 +31,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         bool isSentToRecipients;
         address[] recipients;
         uint32[] outgoingChainIds;
+        address tokenAddress; // @dev Added to track which token is locked
     }
 
     /**
@@ -45,25 +48,22 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
      * @dev Emitted when tokens are locked by a caller into this contract.
      */
     event AerodumpOFTAdapter__TokensLocked(
-        address caller,
-        uint256 projectId,
-        uint256 amount,
-        uint256 dstChainId
+        address caller, uint256 projectId, uint256 amount, uint32 dstChainId, address tokenAddress
     );
 
     /**
      * @dev Emitted when tokens are credited to a recipient.
      */
-    event AerodumpOFTAdapter__TokensCredited(
-        address recipient,
-        uint256 amount,
-        uint256 dstChainId
-    );
+    event AerodumpOFTAdapter__TokensCredited(address recipient, uint256 amount, uint32 dstChainId);
 
     /**
      * @dev Instance of the AeroDumpAttestations contract.
      */
     AeroDumpAttestations attestationContract;
+
+    mapping(address => bool) public supportedTokens; // @dev Added to track which token is supported
+    uint256 public distributionQueueIndex; // @dev Added to track the index of all 3 methods in the distribution queue
+    Recipient[] public distributionQueue; // @dev Added to track of all 3 methods in the distribution queue
 
     /**
      * @dev Global variable for token address used in this deployment.
@@ -110,38 +110,50 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
      * @dev Modifier to check if the project is verified
      */
     modifier projectShouldBeVerified() {
-        require(
-            attestationContract.getIsProjectVerified(msg.sender),
-            "Project is not verified"
-        );
+        require(attestationContract.getIsProjectVerified(msg.sender), "Project is not verified");
         _;
     }
 
     // @dev Modifier to check if the project owner is KYC verified
     modifier projectOwnerShouldBeKYCVerified() {
-        require(
-            attestationContract.isVerifiedWithKYC(msg.sender),
-            "Project owner is not KYC verified"
-        );
+        require(attestationContract.isVerifiedWithKYC(msg.sender), "Project owner is not KYC verified");
         _;
     }
 
     /**
-     * @param _token Address of the existing ERC20 token that will be used for airdrops.
      * @param _layerZeroEndpoint LayerZero endpoint address
      * @param _owner Owner of the contract.
      */
     constructor(
-        address _token,
         address _layerZeroEndpoint,
         address _owner,
         address _aeroDumpAttestationsAddress
-    ) OFTAdapter(_token, _layerZeroEndpoint, _owner) Ownable(_owner) {
-        TOKEN_ADDRESS = _token;
-        attestationContract = AeroDumpAttestations(
-            _aeroDumpAttestationsAddress
-        );
-        equalDistributionQueueFrontIndex = 0;
+    )
+        OFTAdapter(address(0), _layerZeroEndpoint, _owner)
+        Ownable(_owner)
+    {
+        attestationContract = AeroDumpAttestations(_aeroDumpAttestationsAddress);
+        distributionQueueIndex = 0;
+    }
+
+    /**
+     *
+     * @param _tokenAddress Address of the token
+     * @dev This function is only for testing purposes.
+     * @notice This function can only be called by the owner.
+     */
+    function addSupportedToken(address _tokenAddress) external onlyOwner {
+        supportedTokens[_tokenAddress] = true;
+    }
+
+    /**
+     *
+     * @param _tokenAddress Address of the token
+     * @dev This function is only for testing purposes.
+     * @notice This function can only be called by the owner.
+     */
+    function removeSupportedToken(address _tokenAddress) external onlyOwner {
+        supportedTokens[_tokenAddress] = false;
     }
 
     /**
@@ -155,58 +167,50 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
      * @param _minAmount Min amount of tokens to be locked in this contract in local decimals.
      * @param _dstChainId ChainId of the chain that the tokens are on.
      * @return amountSent Amount of tokens sent by the caller.
-     * @return amountRecievedByRemote Amount of tokens received by remote(layerzero/this contract) .
+     * @return amountReceivedByRemote Amount of tokens received by remote(layerzero/this contract) .
      */
     function lockTokens(
         uint256 _projectId,
         uint256 _amount,
         uint256 _minAmount,
-        uint32 _dstChainId
+        uint32 _dstChainId,
+        address _tokenAddress
     )
         external
         //projectOwnerShouldBeKYCVerified
         projectShouldBeVerified
-        returns (uint256 amountSent, uint256 amountRecievedByRemote)
+        returns (uint256 amountSent, uint256 amountReceivedByRemote)
     {
+        require(supportedTokens[_tokenAddress], "Token not supported");
+
+        IERC20(_tokenAddress).transferFrom(msg.sender, address(this), _amount);
+
         //LayerZero function _debit that handles the actual debit using vault standards.
-        (amountSent, amountRecievedByRemote) = _debit(
-            msg.sender,
-            _amount,
-            _minAmount,
-            _dstChainId
-        );
+        (amountSent, amountReceivedByRemote) = _debit(msg.sender, _amount, _minAmount, _dstChainId);
 
         if (projectIdToOwner[_projectId] == msg.sender) {
-            projects[projectOwnerToId[msg.sender]]
-                .amountLockedInContract += _amount;
+            projects[projectOwnerToId[msg.sender]].amountLockedInContract += _amount;
         } else {
-            project memory temp;
-            temp.isAirdropActive = true;
-            temp.projectId = _projectId;
-            temp.ownerOfTheProject = msg.sender;
-            temp.amountLockedInContract = _amount;
-            temp.incomingChainId = _dstChainId;
-            temp.isSentToRecipients = false;
-            temp.recipients = new address[](0);
-            temp.outgoingChainIds = new uint32[](0);
-            projects.push(temp);
-            projectOwnerToId[msg.sender] = _projectId;
+            project memory newProject = project({
+                isAirdropActive: true,
+                projectId: _projectId,
+                ownerOfTheProject: msg.sender,
+                amountLockedInContract: _amount,
+                incomingChainId: _dstChainId,
+                isSentToRecipients: false,
+                recipients: new address[](0),
+                outgoingChainIds: new uint32[](0),
+                tokenAddress: _tokenAddress
+            });
+            projects.push(newProject);
+            projectOwnerToId[msg.sender] = projects.length - 1;
             projectIdToOwner[_projectId] = msg.sender;
         }
 
-        attestationContract.recordLockTokens(
-            _projectId,
-            TOKEN_ADDRESS,
-            _amount
-        );
+        attestationContract.recordLockTokens(_projectId, TOKEN_ADDRESS, _amount);
 
-        emit AerodumpOFTAdapter__TokensLocked(
-            msg.sender,
-            _projectId,
-            _amount,
-            _dstChainId
-        );
-        return (amountSent, amountRecievedByRemote);
+        emit AerodumpOFTAdapter__TokensLocked(msg.sender, _projectId, _amount, _dstChainId, _tokenAddress);
+        return (amountSent, amountReceivedByRemote);
     }
 
     /**
@@ -226,25 +230,56 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         projectShouldBeVerified
     //projectOwnerShouldBeKYCVerified
     {
-        require(
-            projects[projectOwnerToId[msg.sender]].amountLockedInContract > 0,
-            "Lock some money first!"
-        );
-        require(_projectId == projectOwnerToId[msg.sender], "Wrong project!");
+        project storage projectStruct = projects[projectOwnerToId[msg.sender]];
+        require(projectStruct.amountLockedInContract > 0, "Lock some money first!");
+        require(_projectId == projectStruct.projectId, "Wrong project!");
+        uint256 amountPerRecipient = projectStruct.amountLockedInContract / _recipients.length;
+
         for (uint256 i = 0; i < _recipients.length; i++) {
             // require(
             //     attestationContract.isVerifiedWithKYC(_recipients[i]),
             //     "Recipient must do KYC!"
             // );
-            equalDistributionQueue.push(
+            distributionQueue.push(
                 Recipient({
                     projectId: _projectId,
                     dstChainId: _dstChainId,
                     recipient: _recipients[i],
-                    amountToSend: (
-                        projects[projectOwnerToId[msg.sender]]
-                            .amountLockedInContract
-                    ) / _recipients.length
+                    amountToSend: amountPerRecipient
+                })
+            );
+        }
+    }
+
+    function queueAirdropWithCustomDistribution(
+        uint256 _projectId,
+        address[] memory _recipients,
+        uint256[] memory _amounts,
+        uint32 _dstChainId
+    )
+        external
+        shouldHaveAnActiveProject
+        projectShouldBeVerified
+    //projectOwnerShouldBeKYCVerified
+    {
+        project storage projectStruct = projects[projectOwnerToId[msg.sender]];
+        require(projectStruct.amountLockedInContract > 0, "Lock some money first!");
+        require(_projectId == projectStruct.projectId, "Wrong project!");
+        require(_recipients.length == _amounts.length, "Arrays length mismatch");
+
+        uint256 totalAmount = 0;
+        for (uint256 i = 0; i < _amounts.length; i++) {
+            totalAmount += _amounts[i];
+        }
+        require(totalAmount <= projectStruct.amountLockedInContract, "Not enough tokens locked");
+
+        for (uint256 i = 0; i < _recipients.length; i++) {
+            distributionQueue.push(
+                Recipient({
+                    projectId: _projectId,
+                    dstChainId: _dstChainId,
+                    recipient: _recipients[i],
+                    amountToSend: _amounts[i]
                 })
             );
         }
@@ -282,7 +317,11 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
      */
     function fakeCheckUpkeep(
         bytes calldata /* checkData */
-    ) external view returns (bool upkeepNeeded, bytes memory performData) {
+    )
+        external
+        view
+        returns (bool upkeepNeeded, bytes memory performData)
+    {
         if (equalDistributionQueue.length == 0) {
             upkeepNeeded = false;
             return (upkeepNeeded, "null");
@@ -303,33 +342,17 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
      *  @dev return `upkeepNeeded`if rebalancing must be done and `performData` which contains an array of increments.
      * This will be used in `performUpkeep`
      */
-    function performUpkeep(bytes calldata /*performData*/) external override {
-        require(
-            equalDistributionQueueFrontIndex < equalDistributionQueue.length,
-            "Array out of bounds"
-        );
+    function performUpkeep(bytes calldata /*performData*/ ) external override {
+        require(equalDistributionQueueFrontIndex < equalDistributionQueue.length, "Array out of bounds");
         uint256 amountRecieved = creditTo(
             equalDistributionQueue[equalDistributionQueueFrontIndex].recipient,
-            equalDistributionQueue[equalDistributionQueueFrontIndex]
-                .amountToSend,
+            equalDistributionQueue[equalDistributionQueueFrontIndex].amountToSend,
             equalDistributionQueue[equalDistributionQueueFrontIndex].dstChainId
         );
-        projects[
-            projectOwnerToId[
-                projectIdToOwner[
-                    equalDistributionQueue[equalDistributionQueueFrontIndex]
-                        .projectId
-                ]
-            ]
-        ].amountLockedInContract -= amountRecieved;
-        projects[
-            projectOwnerToId[
-                projectIdToOwner[
-                    equalDistributionQueue[equalDistributionQueueFrontIndex]
-                        .projectId
-                ]
-            ]
-        ].isSentToRecipients = true;
+        projects[projectOwnerToId[projectIdToOwner[equalDistributionQueue[equalDistributionQueueFrontIndex].projectId]]]
+            .amountLockedInContract -= amountRecieved;
+        projects[projectOwnerToId[projectIdToOwner[equalDistributionQueue[equalDistributionQueueFrontIndex].projectId]]]
+            .isSentToRecipients = true;
         delete equalDistributionQueue[equalDistributionQueueFrontIndex];
         equalDistributionQueueFrontIndex++;
     }
@@ -337,33 +360,17 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
     /**
      * @dev This function is only for testing purposes.
      */
-    function fakePerformUpkeep(bytes calldata /*performData */) external {
-        require(
-            equalDistributionQueueFrontIndex < equalDistributionQueue.length,
-            "Array out of bounds"
-        );
+    function fakePerformUpkeep(bytes calldata /*performData */ ) external {
+        require(equalDistributionQueueFrontIndex < equalDistributionQueue.length, "Array out of bounds");
         uint256 amountRecieved = creditTo(
             equalDistributionQueue[equalDistributionQueueFrontIndex].recipient,
-            equalDistributionQueue[equalDistributionQueueFrontIndex]
-                .amountToSend,
+            equalDistributionQueue[equalDistributionQueueFrontIndex].amountToSend,
             equalDistributionQueue[equalDistributionQueueFrontIndex].dstChainId
         );
-        projects[
-            projectOwnerToId[
-                projectIdToOwner[
-                    equalDistributionQueue[equalDistributionQueueFrontIndex]
-                        .projectId
-                ]
-            ]
-        ].amountLockedInContract -= amountRecieved;
-        projects[
-            projectOwnerToId[
-                projectIdToOwner[
-                    equalDistributionQueue[equalDistributionQueueFrontIndex]
-                        .projectId
-                ]
-            ]
-        ].isSentToRecipients = true;
+        projects[projectOwnerToId[projectIdToOwner[equalDistributionQueue[equalDistributionQueueFrontIndex].projectId]]]
+            .amountLockedInContract -= amountRecieved;
+        projects[projectOwnerToId[projectIdToOwner[equalDistributionQueue[equalDistributionQueueFrontIndex].projectId]]]
+            .isSentToRecipients = true;
         delete equalDistributionQueue[equalDistributionQueueFrontIndex];
         equalDistributionQueueFrontIndex++;
     }
@@ -372,11 +379,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
      * @notice Credits tokens to the recipient.
      * @dev Integrated with LayerZero.
      */
-    function creditTo(
-        address _to,
-        uint256 _amount,
-        uint32 _chainId
-    ) internal returns (uint256 amountRecieved) {
+    function creditTo(address _to, uint256 _amount, uint32 _chainId) internal returns (uint256 amountRecieved) {
         //LayerZero function _credit that handles the actual credit to recipients using vault standards.
         amountRecieved = _credit(_to, _amount, _chainId);
         emit AerodumpOFTAdapter__TokensCredited(msg.sender, _amount, _chainId);
