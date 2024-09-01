@@ -27,6 +27,17 @@ Built to support airdrops, marketing event rewards, and large-scale token transf
 **Scalability and Efficiency:**
 - By leveraging both `Chainlink Automation` and `CCIP`, the system scales to handle bulk token transfers across various blockchains without the need for manual monitoring or intervention.
 
+## User Flow
+```mermaid
+graph TD;
+    Sign-In/Sign-Up-->Register-Project;
+    Register-Project-->Upload-CSV;
+    Register-Project-->Fill-the-Text;
+    Upload-CSV-->Deposit-Vault;
+    Fill-the-Text-->Deposit-Vault;
+    Deposit-Vault-->Auto-Distribution;
+    Auto-Distribution-->Check-History;
+```
 
 ## Simple User Journey
 1. **Visit Platform and Log In**:
