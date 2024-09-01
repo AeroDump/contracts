@@ -1,3 +1,5 @@
+![스크린샷 2024-09-01 204946](https://github.com/user-attachments/assets/a61c5c15-9647-4129-990d-ba3026e7d383)
+
 # AeroDump: Revolutionizing Token Distribution
 `AeroDump` is a cutting-edge platform designed to simplify and automate the distribution of tokens for users and project owners across multiple blockchain networks. 
 Built to support airdrops, marketing event rewards, and large-scale token transfers, AeroDump leverages the power of automation, cross-chain interoperability, and secure vaults to provide an efficient, hands-free solution for bulk token distribution.
