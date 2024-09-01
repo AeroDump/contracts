@@ -11,14 +11,17 @@ import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 pragma solidity ^0.8.10;
 
 contract AerodumpOFTAdapterTest is StdCheats, StdUtils, Test, Script {
+    AerodumpOFTAdapter.Recipient[] recipients2;
     address owner = address(1);
     address[] recipients;
-
     address projectOwner = address(6);
+    address projectOwner2 = address(9);
     address recipient1 = address(2);
     address recipient2 = address(3);
     address recipient3 = address(4);
     address recipient4 = address(5);
+    address recipient5 = address(11);
+    address recipient6 = address(12);
     IERC20 public usdc;
     HelperConfig public helperconfig;
     AeroDumpAttestations attestationscontract;
@@ -32,6 +35,7 @@ contract AerodumpOFTAdapterTest is StdCheats, StdUtils, Test, Script {
         vm.selectFork(basesepoliafork);
         usdc = IERC20(helperconfig.getBaseSepoliaConfig().tokenAddress);
         deal(address(usdc), projectOwner, 20 * 1e6);
+        deal(address(usdc), projectOwner2, 50 * 1e6);
         vm.startPrank(owner);
         attestationscontract = new AeroDumpAttestations(
             owner,
@@ -103,7 +107,7 @@ contract AerodumpOFTAdapterTest is StdCheats, StdUtils, Test, Script {
             uint32(vm.envUint("BASE_SEPOLIA_CHAIN_ID"))
         );
         adapter.queueAirdropWithEqualDistribution(
-            projectId,
+            projectId, //0 for this case
             recipients,
             uint32(vm.envUint("BASE_SEPOLIA_CHAIN_ID"))
         );
@@ -151,6 +155,56 @@ contract AerodumpOFTAdapterTest is StdCheats, StdUtils, Test, Script {
             .getProjectDetailsByAddress(projectOwner);
         assertEq(project4.isSentToRecipients, true);
         assertEq(usdc.balanceOf(recipient4), 5 * 1e6);
+        vm.stopPrank();
+    }
+
+    function testqueueAirdropWithUnequalDistribution() public {
+        vm.startPrank(projectOwner2);
+        uint256 projectId = attestationscontract.verifyProject(
+            "Project A",
+            "Project A Desc",
+            "Project A URL",
+            "Project A Twitter"
+        );
+        usdc.approve(address(adapter), 50 * 1e6);
+        adapter.lockTokens(
+            projectId,
+            50 * 1e6,
+            49 * 1e6,
+            uint32(vm.envUint("BASE_SEPOLIA_CHAIN_ID"))
+        );
+
+        AerodumpOFTAdapter.Recipient memory recipientDat1 = AerodumpOFTAdapter
+            .Recipient({
+                projectId: projectId,
+                dstChainId: uint32(vm.envUint("BASE_SEPOLIA_CHAIN_ID")),
+                recipient: recipient5,
+                amountToSend: 30 * 1e6
+            });
+
+        AerodumpOFTAdapter.Recipient memory recipientDat2 = AerodumpOFTAdapter
+            .Recipient({
+                projectId: projectId,
+                dstChainId: uint32(vm.envUint("BASE_SEPOLIA_CHAIN_ID")),
+                recipient: recipient6,
+                amountToSend: 19 * 1e6
+            });
+
+        recipients2.push(recipientDat1);
+        recipients2.push(recipientDat2);
+
+        adapter.queueAirdropWithUnequalCSVDistribution(recipients2);
+        adapter.fakePerformUpkeep(bytes("null"));
+        AerodumpOFTAdapter.project memory project = adapter
+            .getProjectDetailsByAddress(projectOwner2);
+        assertEq(project.isSentToRecipients, true);
+        assertEq(usdc.balanceOf(recipient5), 30 * 1e6);
+        adapter.fakePerformUpkeep(bytes("null"));
+        AerodumpOFTAdapter.project memory projectx = adapter
+            .getProjectDetailsByAddress(projectOwner2);
+        assertEq(projectx.isSentToRecipients, true);
+        assertEq(usdc.balanceOf(recipient6), 19 * 1e6);
+
         vm.stopPrank();
     }
 }

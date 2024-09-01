@@ -75,6 +75,8 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
      */
     uint256 public equalDistributionQueueFrontIndex;
 
+    uint256 public unequalDistributionCSVQueueFrontIndex;
+
     /**
      * @dev An arry of "Project" structs.
      */
@@ -84,6 +86,8 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
      * @dev An arry of "Recipient" structs that are waiting for airdrop with equal distribution.
      */
     Recipient[] public equalDistributionQueue;
+
+    Recipient[] public unequalDistributionCSVQueue;
 
     /**
      * @dev A mapping from the address of a project owner to the project id in the struct.
@@ -250,6 +254,43 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         }
     }
 
+    function queueAirdropWithUnequalCSVDistribution(
+        Recipient[] memory _recipientsData
+    )
+        external
+        shouldHaveAnActiveProject
+        projectShouldBeVerified
+    //projectOwnerShouldBeKYCVerified
+    {
+        for (uint256 i = 0; i < _recipientsData.length; i++) {
+            // require(
+            //     attestationContract.isVerifiedWithKYC(_recipients[i]),
+            //     "Recipient must do KYC!"
+            // );
+            require(
+                _recipientsData[i].amountToSend <
+                    projects[_recipientsData[i].projectId]
+                        .amountLockedInContract,
+                "Enter Less amount than locked!"
+            );
+
+            require(
+                projects[_recipientsData[i].projectId].amountLockedInContract >
+                    0,
+                "Lock some money first!"
+            );
+
+            unequalDistributionCSVQueue.push(
+                Recipient({
+                    projectId: _recipientsData[i].projectId,
+                    dstChainId: _recipientsData[i].dstChainId,
+                    recipient: _recipientsData[i].recipient,
+                    amountToSend: _recipientsData[i].amountToSend
+                })
+            );
+        }
+    }
+
     /**
      *  @dev this method is called by the Chainlink Automation Nodes to check if `performUpkeep` must be done. Note that
      * `checkData` is used to segment the computation to subarrays.
@@ -261,18 +302,15 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
      */
     function checkUpkeep(
         bytes calldata /* checkData */
-    )
-        external
-        view
-        override
-        returns (bool upkeepNeeded, bytes memory performData)
-    {
-        if (equalDistributionQueue.length == 0) {
-            upkeepNeeded = false;
+    ) external view returns (bool upkeepNeeded, bytes memory performData) {
+        if (
+            equalDistributionQueue.length > 0 ||
+            unequalDistributionCSVQueue.length > 0
+        ) {
+            upkeepNeeded = true;
             return (upkeepNeeded, "null");
         } else {
-            upkeepNeeded = true;
-
+            upkeepNeeded = false;
             return (upkeepNeeded, "null");
         }
     }
@@ -283,12 +321,14 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
     function fakeCheckUpkeep(
         bytes calldata /* checkData */
     ) external view returns (bool upkeepNeeded, bytes memory performData) {
-        if (equalDistributionQueue.length == 0) {
-            upkeepNeeded = false;
+        if (
+            equalDistributionQueue.length > 0 ||
+            unequalDistributionCSVQueue.length > 0
+        ) {
+            upkeepNeeded = true;
             return (upkeepNeeded, "null");
         } else {
-            upkeepNeeded = true;
-
+            upkeepNeeded = false;
             return (upkeepNeeded, "null");
         }
     }
@@ -304,6 +344,20 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
      * This will be used in `performUpkeep`
      */
     function performUpkeep(bytes calldata /*performData*/) external override {
+        equalDistributionHelper();
+        unequalDistributionHelper();
+    }
+
+    /**
+     * @dev This function is only for testing purposes.
+     */
+    function fakePerformUpkeep(bytes calldata /*performData */) external {
+        equalDistributionHelper();
+        unequalDistributionHelper();
+    }
+
+    function equalDistributionHelper() internal {
+        if (equalDistributionQueue.length == 0) return;
         require(
             equalDistributionQueueFrontIndex < equalDistributionQueue.length,
             "Array out of bounds"
@@ -334,38 +388,43 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         equalDistributionQueueFrontIndex++;
     }
 
-    /**
-     * @dev This function is only for testing purposes.
-     */
-    function fakePerformUpkeep(bytes calldata /*performData */) external {
+    function unequalDistributionHelper() internal {
+        if (unequalDistributionCSVQueue.length == 0) return;
         require(
-            equalDistributionQueueFrontIndex < equalDistributionQueue.length,
+            unequalDistributionCSVQueueFrontIndex <
+                unequalDistributionCSVQueue.length,
             "Array out of bounds"
         );
         uint256 amountRecieved = creditTo(
-            equalDistributionQueue[equalDistributionQueueFrontIndex].recipient,
-            equalDistributionQueue[equalDistributionQueueFrontIndex]
+            unequalDistributionCSVQueue[unequalDistributionCSVQueueFrontIndex]
+                .recipient,
+            unequalDistributionCSVQueue[unequalDistributionCSVQueueFrontIndex]
                 .amountToSend,
-            equalDistributionQueue[equalDistributionQueueFrontIndex].dstChainId
+            unequalDistributionCSVQueue[unequalDistributionCSVQueueFrontIndex]
+                .dstChainId
         );
         projects[
             projectOwnerToId[
                 projectIdToOwner[
-                    equalDistributionQueue[equalDistributionQueueFrontIndex]
-                        .projectId
+                    unequalDistributionCSVQueue[
+                        unequalDistributionCSVQueueFrontIndex
+                    ].projectId
                 ]
             ]
         ].amountLockedInContract -= amountRecieved;
         projects[
             projectOwnerToId[
                 projectIdToOwner[
-                    equalDistributionQueue[equalDistributionQueueFrontIndex]
-                        .projectId
+                    unequalDistributionCSVQueue[
+                        unequalDistributionCSVQueueFrontIndex
+                    ].projectId
                 ]
             ]
         ].isSentToRecipients = true;
-        delete equalDistributionQueue[equalDistributionQueueFrontIndex];
-        equalDistributionQueueFrontIndex++;
+        delete unequalDistributionCSVQueue[
+            unequalDistributionCSVQueueFrontIndex
+        ];
+        unequalDistributionCSVQueueFrontIndex++;
     }
 
     /**
@@ -447,5 +506,13 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
      */
     function getTokenAddress() public view returns (address) {
         return TOKEN_ADDRESS;
+    }
+
+    function getEqualDistributionRecipientQueueFront()
+        public
+        view
+        returns (Recipient memory)
+    {
+        return equalDistributionQueue[equalDistributionQueueFrontIndex];
     }
 }

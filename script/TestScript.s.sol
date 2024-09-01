@@ -7,7 +7,7 @@ import {AeroDumpAttestations} from "../src/signprotocol/AeroDumpAttestations.sol
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {HelperConfig} from "../script/HelperConfig.s.sol";
 
-contract OFTAdapterScript is Script {
+contract TestScript is Script {
     function run() public {
         HelperConfig helperconfig = new HelperConfig();
         // address privateKey = vm.envAddress("private_key");
