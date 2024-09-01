@@ -5,6 +5,7 @@ import {OFTAdapter} from "@layerzerolabs/oft-evm/contracts/OFTAdapter.sol";
 import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {AeroDumpAttestations} from "./signprotocol/AeroDumpAttestations.sol";
+import {OApp, MessagingFee, Origin} from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
 
 /**
  * @title AerodumpOFTAdapter
@@ -40,6 +41,8 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         address recipient;
         uint256 amountToSend;
     }
+
+    uint256 testVar;
 
     /**
      * @dev Emitted when tokens are locked by a caller into this contract.
@@ -138,13 +141,16 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
     constructor(
         address _token,
         address _layerZeroEndpoint,
-        address _owner,
-        address _aeroDumpAttestationsAddress
-    ) OFTAdapter(_token, _layerZeroEndpoint, _owner) Ownable(_owner) {
+        address _owner
+    )
+        // address _aeroDumpAttestationsAddress
+        OFTAdapter(_token, _layerZeroEndpoint, _owner)
+        Ownable(_owner)
+    {
         TOKEN_ADDRESS = _token;
-        attestationContract = AeroDumpAttestations(
-            _aeroDumpAttestationsAddress
-        );
+        // attestationContract = AeroDumpAttestations(
+        //     _aeroDumpAttestationsAddress
+        // );
         equalDistributionQueueFrontIndex = 0;
     }
 
@@ -514,5 +520,20 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         returns (Recipient memory)
     {
         return equalDistributionQueue[equalDistributionQueueFrontIndex];
+    }
+
+    function _lzReceive(
+        Origin calldata _origin,
+        bytes32 _guid,
+        bytes calldata _message,
+        address /*_executor*/, // @dev unused in the default implementation.
+        bytes calldata /*_extraData*/ // @dev unused in the default implementation.
+    ) internal override {
+        testVar = 2;
+        //decode the data and create a custom mapping for it
+    }
+
+    function getTestVar() public view returns (uint256) {
+        return testVar;
     }
 }

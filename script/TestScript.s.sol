@@ -15,7 +15,8 @@ contract TestScript is Script {
         console.log("script running");
         AeroDumpAttestations attestationscontract = new AeroDumpAttestations(
             msg.sender,
-            helperconfig.getBaseSepoliaConfig()._ispAddress
+            helperconfig.getBaseSepoliaConfig()._ispAddress,
+            0x6EDCE65403992e310A62460808c4b910D972f10f
         );
         attestationscontract.setSchemaIds(
             helperconfig
@@ -31,8 +32,7 @@ contract TestScript is Script {
         AerodumpOFTAdapter adapter = new AerodumpOFTAdapter(
             vm.envAddress("BASE_SEPOLIA_USDC"),
             vm.envAddress("BASE_SEPOLIA_LAYERZERO_ENDPOINT"),
-            msg.sender,
-            address(attestationscontract)
+            msg.sender
         );
         console.log("script running again");
         console.log("adapter", address(adapter));

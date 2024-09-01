@@ -17,7 +17,8 @@ contract OFTAdapterScript is Script {
         vm.startBroadcast();
         AeroDumpAttestations attestations = new AeroDumpAttestations(
             msg.sender,
-            config.getBaseSepoliaConfig()._ispAddress
+            config.getBaseSepoliaConfig()._ispAddress,
+            0x6EDCE65403992e310A62460808c4b910D972f10f
         );
         console.log("attestations", address(attestations));
 
@@ -34,8 +35,7 @@ contract OFTAdapterScript is Script {
         AerodumpOFTAdapter adapter = new AerodumpOFTAdapter(
             config.getBaseSepoliaConfig().tokenAddress,
             config.getBaseSepoliaConfig().layerZeroEndpoint,
-            msg.sender,
-            address(attestations)
+            msg.sender
         );
         console.log("adapter", address(adapter));
 

@@ -39,14 +39,14 @@ contract AerodumpOFTAdapterTest is StdCheats, StdUtils, Test, Script {
         vm.startPrank(owner);
         attestationscontract = new AeroDumpAttestations(
             owner,
-            helperconfig.getBaseSepoliaConfig()._ispAddress
+            helperconfig.getBaseSepoliaConfig()._ispAddress,
+            0x6EDCE65403992e310A62460808c4b910D972f10f
         );
         attestationscontract.setSchemaIds(293, 3, 4, 298, 6, 6, 8);
         adapter = new AerodumpOFTAdapter(
             helperconfig.getBaseSepoliaConfig().tokenAddress,
             helperconfig.getBaseSepoliaConfig().layerZeroEndpoint,
-            msg.sender,
-            address(attestationscontract)
+            msg.sender
         );
         vm.stopPrank();
     }

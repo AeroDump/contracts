@@ -38,7 +38,8 @@ contract AerodumpStagingTest is StdCheats, StdUtils, Test, Script {
         vm.startPrank(owner);
         attestationscontract = new AeroDumpAttestations(
             owner,
-            helperconfig.getBaseSepoliaConfig()._ispAddress
+            helperconfig.getBaseSepoliaConfig()._ispAddress,
+            0x6EDCE65403992e310A62460808c4b910D972f10f
         );
         attestationscontract.setSchemaIds(
             helperconfig
@@ -54,8 +55,7 @@ contract AerodumpStagingTest is StdCheats, StdUtils, Test, Script {
         adapter = new AerodumpOFTAdapter(
             helperconfig.getBaseSepoliaConfig().tokenAddress,
             helperconfig.getBaseSepoliaConfig().layerZeroEndpoint,
-            msg.sender,
-            address(attestationscontract)
+            msg.sender
         );
         vm.stopPrank();
     }
