@@ -27,7 +27,7 @@ Built to support airdrops, marketing event rewards, and large-scale token transf
 **Scalability and Efficiency:**
 - By leveraging both `Chainlink Automation` and `CCIP`, the system scales to handle bulk token transfers across various blockchains without the need for manual monitoring or intervention.
 
-## User Flow
+## User Journey
 ```mermaid
 graph TD;
     Sign-In/Sign-Up-->Register-Project;
@@ -39,7 +39,6 @@ graph TD;
     Auto-Distribution-->Check-History;
 ```
 
-## Simple User Journey
 1. **Visit Platform and Log In**:
    - Log in easily using Web3Auth with your social accounts.
 
