@@ -54,7 +54,7 @@ contract HelperConfig is Script {
             _airdropExecutionSchemaId: AIRDROP_EXECUTION_SCHEMA_ID,
             _initialOwner: 0xfe63Ba8189215E5C975e73643b96066B6aD41A45,
             _ispAddress: 0x4e4af2a21ebf62850fD99Eb6253E1eFBb56098cD //0x878c92FD89d8E0B93Dc0a3c907A2adc7577e39c5 Sepolia
-                // testnet address
+                // testnet address0x6EDCE65403992e310A62460808c4b910D972f10f
          });
         return baseSepoliaConfig;
     }

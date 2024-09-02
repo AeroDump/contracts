@@ -4,12 +4,6 @@
 [submodule "lib/openzeppelin-contracts"]
 	path = lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
-[submodule "lib/devtools"]
-	path = lib/devtools
-	url = https://github.com/LayerZero-Labs/devtools
-[submodule "lib/layerzero-v2"]
-	path = lib/layerzero-v2
-	url = https://github.com/LayerZero-Labs/layerzero-v2
 [submodule "lib/sign-protocol-evm"]
 	path = lib/sign-protocol-evm
 	url = https://github.com/EthSign/sign-protocol-evm
@@ -19,6 +13,12 @@
 [submodule "lib/chainlink-brownie-contracts"]
 	path = lib/chainlink-brownie-contracts
 	url = https://github.com/smartcontractkit/chainlink-brownie-contracts
-[submodule "lib/chainlink-local"]
-	path = lib/chainlink-local
-	url = https://github.com/smartcontractkit/chainlink-local
+[submodule "lib/devtools"]
+	path = lib/devtools
+	url = https://github.com/LayerZero-Labs/devtools
+[submodule "lib/layerzero-v2"]
+	path = lib/layerzero-v2
+	url = https://github.com/LayerZero-Labs/layerzero-v2
+[submodule "lib/solidity-bytes-utils"]
+	path = lib/solidity-bytes-utils
+	url = https://github.com/GNSPS/solidity-bytes-utils

@@ -6,6 +6,12 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ISP } from "@signprotocol/signprotocol-evm/src/interfaces/ISP.sol";
 import { Attestation } from "@signprotocol/signprotocol-evm/src/models/Attestation.sol";
 import { DataLocation } from "@signprotocol/signprotocol-evm/src/models/DataLocation.sol";
+import { OApp, Origin, MessagingFee } from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
+import {
+    MessagingParams,
+    MessagingFee,
+    MessagingReceipt
+} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 
 /**
  * @title AeroDumpAttestations
@@ -13,9 +19,11 @@ import { DataLocation } from "@signprotocol/signprotocol-evm/src/models/DataLoca
  * @notice This contract manages various attestations for a multi-sender platform.
  * @dev It utilizes Sign Protocol's attestation system to store project-related data securely.
  */
-contract AeroDumpAttestations is Ownable {
+contract AeroDumpAttestations is Ownable, OApp {
     // @dev The instance of the Sign Protocol interface.
     ISP public spInstance;
+
+    string public data;
 
     // @dev Custom error for when a user is not authorized to verify a project.
     error ProjectIsVerified();
@@ -47,7 +55,14 @@ contract AeroDumpAttestations is Ownable {
      * @param initialOwner The address of the contract owner.
      * @param _spInstance The address of the Sign Protocol instance.
      */
-    constructor(address initialOwner, address _spInstance) Ownable(initialOwner) {
+    constructor(
+        address initialOwner,
+        address _spInstance,
+        address _endpoint
+    )
+        OApp(_endpoint, initialOwner)
+        Ownable(initialOwner)
+    {
         spInstance = ISP(_spInstance);
     }
 
@@ -81,36 +96,6 @@ contract AeroDumpAttestations is Ownable {
         distributionCertificateSchemaId = _distributionCertificateSchemaId;
         airdropExecutionSchemaId = _airdropExecutionSchemaId;
     }
-
-    /**
-     * //  * @notice Registers a new project with the system.
-     * //  * @dev Creates an attestation for the project registration.
-     * //  * @param projectName The name of the project being registered.
-     * //
-     * @notice Registers a new project with the system.
-     * @dev Creates an attestation for the project registration.
-     * @param projectName The name of the project being registered.
-     */
-
-    // function registerProject(string memory projectName) external {
-    //     bytes[] memory recipients = new bytes[](1);
-    //     recipients[0] = abi.encode(msg.sender);
-
-    //     Attestation memory a = Attestation({
-    //         schemaId: projectSchemaId,
-    //         linkedAttestationId: 0,
-    //         attestTimestamp: 0,
-    //         revokeTimestamp: 0,
-    //         attester: address(this),
-    //         validUntil: 0,
-    //         dataLocation: DataLocation.ONCHAIN,
-    //         revoked: false,
-    //         recipients: recipients,
-    //         data: abi.encode(projectName, msg.sender, false)
-    //     });
-
-    //     spInstance.attest(a, "", "", "");
-    // }
 
     /**
      * @notice Verifies a project by recording detailed information.
@@ -164,6 +149,8 @@ contract AeroDumpAttestations is Ownable {
         s_isVerified[msg.sender] = true;
         s_projectIds[msg.sender] = projectId;
 
+        // MessagingFee memory fee = _quote(uint32(40245), "hi_there", options, false);
+
         return projectId;
     }
 
@@ -194,34 +181,6 @@ contract AeroDumpAttestations is Ownable {
         s_isKYCVerified[user] = isVerified;
     }
 
-    //UNDO
-    /**
-     * @notice Records a CSV file upload for a project.
-     * @dev Creates an attestation for the CSV file upload, including file hash and recipient count.
-     * @param projectName The name of the project associated with the CSV file.
-     * @param fileHash The hash of the uploaded CSV file for verification purposes.
-     * @param recipientCount The number of recipients included in this CSV upload.
-     */
-    function recordCSVFileUpload(string memory projectName, bytes32 fileHash, uint256 recipientCount) external {
-        bytes[] memory recipients = new bytes[](1);
-        recipients[0] = abi.encode(msg.sender);
-
-        Attestation memory a = Attestation({
-            schemaId: csvUploadSchemaId,
-            linkedAttestationId: 0,
-            attestTimestamp: 0,
-            revokeTimestamp: 0,
-            attester: address(this),
-            validUntil: 0,
-            dataLocation: DataLocation.ONCHAIN,
-            revoked: false,
-            recipients: recipients,
-            data: abi.encode(projectName, fileHash, recipientCount)
-        });
-
-        spInstance.attest(a, "", "", "");
-    }
-
     /**
      * @notice Records a token deposit for a project.
      * @dev Creates an attestation for the token deposit, including token address and amount.
@@ -244,31 +203,6 @@ contract AeroDumpAttestations is Ownable {
             revoked: false,
             recipients: recipients,
             data: abi.encode(projectId, tokenAddress, amount)
-        });
-
-        spInstance.attest(a, "", "", "");
-    }
-
-    /**
-     * @notice Records user consent for participating in projects.
-     * @dev Creates an attestation for the user's consent status.
-     * @param consentGiven A boolean indicating whether the user has given consent (true) or not (false).
-     */
-    function recordUserConsent(bool consentGiven) external {
-        bytes[] memory recipients = new bytes[](1);
-        recipients[0] = abi.encode(msg.sender);
-
-        Attestation memory a = Attestation({
-            schemaId: userConsentSchemaId,
-            linkedAttestationId: 0,
-            attestTimestamp: 0,
-            revokeTimestamp: 0,
-            attester: address(this),
-            validUntil: 0,
-            dataLocation: DataLocation.ONCHAIN,
-            revoked: false,
-            recipients: recipients,
-            data: abi.encode(consentGiven)
         });
 
         spInstance.attest(a, "", "", "");
@@ -307,30 +241,42 @@ contract AeroDumpAttestations is Ownable {
         spInstance.attest(a, "", "", "");
     }
 
+    function send(uint32 _dstEid, string memory _message, bytes calldata _options) external payable {
+        // Encodes the message before invoking _lzSend.
+        // Replace with whatever data you want to send!
+        bytes memory _payload = abi.encode(_message);
+        _lzSend(
+            _dstEid,
+            _payload,
+            _options,
+            // Fee in native gas and ZRO token.
+            MessagingFee(msg.value, 0),
+            // Refund address in case of failed source message.
+            payable(msg.sender)
+        );
+    }
+
     /**
-     * @notice Signs a refund agreement for a project.
-     * @dev Creates or updates an attestation to indicate that a refund agreement has been signed.
-     * @param projectName The name of the project for which the refund agreement is being signed.
+     * @dev Called when data is received from the protocol. It overrides the equivalent function in the parent contract.
+     * Protocol messages are defined as packets, comprised of the following parameters.
+     * @param _origin A struct containing information about where the packet came from.
+     * @param _guid A global unique identifier for tracking the packet.
+     * @param payload Encoded message.
      */
-    // function signRefundAgreement(string memory projectName) external {
-    //     bytes[] memory recipients = new bytes[](1);
-    //     recipients[0] = abi.encode(msg.sender);
-
-    // Attestation memory a = Attestation({
-    //     schemaId: projectSchemaId,
-    //     linkedAttestationId: 0,
-    //     attestTimestamp: 0,
-    //     revokeTimestamp: 0,
-    //     attester: address(this),
-    //     validUntil: 0,
-    //     dataLocation: DataLocation.ONCHAIN,
-    //     revoked: false,
-    //     recipients: recipients,
-    //     data: abi.encode(projectName)
-    // });
-
-    //     spInstance.attest(a, "", "", "");
-    // }
+    function _lzReceive(
+        Origin calldata _origin,
+        bytes32 _guid,
+        bytes calldata payload,
+        address, // Executor address as specified by the OApp.
+        bytes calldata // Any extra data or options to trigger on receipt.
+    )
+        internal
+        override
+    {
+        // Decode the payload to get the message
+        // In this case, type is string, but depends on your encoding!
+        data = abi.decode(payload, (string));
+    }
 
     /**
      * @notice Checks the verification status of a user's project.
@@ -370,6 +316,4 @@ contract AeroDumpAttestations is Ownable {
     function getIsTokensLoked() external view returns (bool) {
         return s_lockedTokens[msg.sender];
     }
-
-    function getIsCsvUploaded() external view returns (bool) { }
 }
