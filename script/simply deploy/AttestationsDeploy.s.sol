@@ -5,16 +5,16 @@ import "forge-std/Script.sol";
 import {AeroDumpAttestations} from "../../src/signprotocol/AeroDumpAttestations.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 
-contract TestAttestationsScript is Script {
-    //deploy on base
+contract AttestationsDeploy is Script {
+    //deploy on eth sepolia, 0x09dc432D56616A204B79ABAd351D84aD78153d5D
     function run() public {
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
         console.log("script running");
         AeroDumpAttestations attestationscontract = new AeroDumpAttestations(
             msg.sender,
-            0x4e4af2a21ebf62850fD99Eb6253E1eFBb56098cD,
-            0x6EDCE65403992e310A62460808c4b910D972f10f
+            0x878c92FD89d8E0B93Dc0a3c907A2adc7577e39c5, //isp for sepolia eth
+            0x6EDCE65403992e310A62460808c4b910D972f10f //layerzero endpoint for eth sepolia
         );
         console.log(
             "Attestation Contract Address",
@@ -30,22 +30,7 @@ contract TestAttestationsScript is Script {
             4
         );
         console.log("schema ids are set");
-        uint32 aEid = 40245; //attestations
-        attestationscontract.setPeer(
-            aEid,
-            addressToBytes32(address(attestationscontract))
-        );
-        uint256 projectid = attestationscontract.verifyProject(
-            "notnull",
-            "notnull",
-            "notnull",
-            "notnull"
-        );
-        console.log("project verified!! id is", projectid);
-        vm.stopBroadcast();
-    }
 
-    function addressToBytes32(address _addr) internal pure returns (bytes32) {
-        return bytes32(uint256(uint160(_addr)));
+        vm.stopBroadcast();
     }
 }

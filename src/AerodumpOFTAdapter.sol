@@ -42,7 +42,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         uint256 amountToSend;
     }
 
-    uint256 testVar;
+    string public data;
 
     /**
      * @dev Emitted when tokens are locked by a caller into this contract.
@@ -522,18 +522,41 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         return equalDistributionQueue[equalDistributionQueueFrontIndex];
     }
 
+    function send(
+        uint32 _dstEid,
+        string memory _message,
+        bytes calldata _options
+    ) external payable {
+        // Encodes the message before invoking _lzSend.
+        // Replace with whatever data you want to send!
+        bytes memory _payload = abi.encode(_message);
+        _lzSend(
+            _dstEid,
+            _payload,
+            _options,
+            // Fee in native gas and ZRO token.
+            MessagingFee(msg.value, 0),
+            // Refund address in case of failed source message.
+            payable(msg.sender)
+        );
+    }
+
+    /**
+     * @dev Called when data is received from the protocol. It overrides the equivalent function in the parent contract.
+     * Protocol messages are defined as packets, comprised of the following parameters.
+     * @param _origin A struct containing information about where the packet came from.
+     * @param _guid A global unique identifier for tracking the packet.
+     * @param payload Encoded message.
+     */
     function _lzReceive(
         Origin calldata _origin,
         bytes32 _guid,
-        bytes calldata _message,
-        address /*_executor*/, // @dev unused in the default implementation.
-        bytes calldata /*_extraData*/ // @dev unused in the default implementation.
+        bytes calldata payload,
+        address, // Executor address as specified by the OApp.
+        bytes calldata // Any extra data or options to trigger on receipt.
     ) internal override {
-        testVar = 2;
-        //decode the data and create a custom mapping for it
-    }
-
-    function getTestVar() public view returns (uint256) {
-        return testVar;
+        // Decode the payload to get the message
+        // In this case, type is string, but depends on your encoding!
+        data = abi.decode(payload, (string));
     }
 }
