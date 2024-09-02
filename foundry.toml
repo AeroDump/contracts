@@ -20,6 +20,7 @@ remappings = [
     '@chainlink/contracts=lib/chainlink-brownie-contracts/contracts',
     '@openzeppelin/openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/',
     '@signprotocol/signprotocol-evm/src/=lib/sign-protocol-evm/src/',
+    '@solidity-bytes-utils=lib/solidity-bytes-utils'
 ]
 
 
