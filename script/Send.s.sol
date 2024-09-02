@@ -7,7 +7,7 @@ import {AeroDumpAttestations} from "../src/signprotocol/AeroDumpAttestations.sol
 import {HelperConfig} from "../script/HelperConfig.s.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-// import {OptionsBuilder} from "@layerzerolabs/oapp-evm/contracts/oapp/libs/OptionsBuilder.sol";
+import {OptionsBuilder} from "@layerzerolabs/oapp-evm/contracts/oapp/libs/OptionsBuilder.sol";
 
 contract SendScript is Script {
     //running on eth sepolia
