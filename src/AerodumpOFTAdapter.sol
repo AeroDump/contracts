@@ -555,6 +555,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         address, // Executor address as specified by the OApp.
         bytes calldata // Any extra data or options to trigger on receipt.
     ) internal override {
+        //update mappings for user
         // Decode the payload to get the message
         // In this case, type is string, but depends on your encoding!
         data = abi.decode(payload, (string));
