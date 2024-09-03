@@ -40,7 +40,10 @@ contract AerodumpStagingTest is StdCheats, StdUtils, Test, Script {
             owner, helperconfig.getBaseSepoliaConfig()._ispAddress, 0x6EDCE65403992e310A62460808c4b910D972f10f
         );
         attestationscontract.setSchemaIds(
-            helperconfig.getBaseSepoliaConfig()._verifyProjectCertificateSchemaId, 2, 3, 1, 2, 3, 4
+            helperconfig.getBaseSepoliaConfig()._verifyProjectCertificateSchemaId,
+            helperconfig.getBaseSepoliaConfig()._kycVerificationSchemaId,
+            helperconfig.getBaseSepoliaConfig()._tokenDepositSchemaId,
+            helperconfig.getBaseSepoliaConfig()._distributionCertificateSchemaId
         );
         adapter = new AerodumpOFTAdapter(
             helperconfig.getBaseSepoliaConfig().tokenAddress,

@@ -19,12 +19,9 @@ contract AttestationsDeploy is Script {
         console.log("Attestation Contract Address", address(attestationscontract));
         attestationscontract.setSchemaIds(
             config.getBaseSepoliaConfig()._verifyProjectCertificateSchemaId,
+            config.getBaseSepoliaConfig()._kycVerificationSchemaId,
             config.getBaseSepoliaConfig()._tokenDepositSchemaId,
-            3,
-            1,
-            2,
-            3,
-            4
+            config.getBaseSepoliaConfig()._distributionCertificateSchemaId
         );
         console.log("schema ids are set");
 

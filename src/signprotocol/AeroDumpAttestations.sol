@@ -23,6 +23,12 @@ contract AeroDumpAttestations is Ownable, OApp {
     // @dev The instance of the Sign Protocol interface.
     ISP public spInstance;
 
+    // @dev The address of the composer contract.
+    address public aeroDumpComposer;
+
+    // @dev The EID of the composer contract.
+    uint32 public aeroDumpComposerEid;
+
     string public data;
 
     // @dev Custom error for when a user is not authorized to verify a project.
@@ -35,11 +41,8 @@ contract AeroDumpAttestations is Ownable, OApp {
     // @dev Schema IDs for different types of attestations.
     uint64 public verifyCertificateSchemaId;
     uint64 public kycVerificationSchemaId;
-    uint64 public csvUploadSchemaId;
     uint64 public tokenDepositSchemaId;
-    uint64 public userConsentSchemaId;
     uint64 public distributionCertificateSchemaId;
-    uint64 public airdropExecutionSchemaId;
 
     // @dev The next project ID to be assigned.
     uint256 private nextProjectId;
@@ -54,6 +57,7 @@ contract AeroDumpAttestations is Ownable, OApp {
      * @dev Constructor initializes the Sign Protocol instance.
      * @param initialOwner The address of the contract owner.
      * @param _spInstance The address of the Sign Protocol instance.
+     * @param _endpoint The address of the LayerZero endpoint.
      */
     constructor(
         address initialOwner,
@@ -72,29 +76,26 @@ contract AeroDumpAttestations is Ownable, OApp {
      * @param _verifyCertificateSchemaId Schema ID for project verification attestations.
      * @param _kycVerificationSchemaId Schema ID for KYC verification attestations.
      * @param _tokenDepositSchemaId Schema ID for token deposit attestations.
-     * @param _userConsentSchemaId Schema ID for user consent attestations.
      * @param _distributionCertificateSchemaId Schema ID for distribution certificate attestations.
-     * @param _airdropExecutionSchemaId Schema ID for airdrop execution attestations.
      */
     function setSchemaIds(
         uint64 _verifyCertificateSchemaId,
         uint64 _kycVerificationSchemaId,
-        uint64 _csvUploadSchemaId,
         uint64 _tokenDepositSchemaId,
-        uint64 _userConsentSchemaId,
-        uint64 _distributionCertificateSchemaId,
-        uint64 _airdropExecutionSchemaId
+        uint64 _distributionCertificateSchemaId
     )
         external
         onlyOwner
     {
         verifyCertificateSchemaId = _verifyCertificateSchemaId;
         kycVerificationSchemaId = _kycVerificationSchemaId;
-        csvUploadSchemaId = _csvUploadSchemaId;
         tokenDepositSchemaId = _tokenDepositSchemaId;
-        userConsentSchemaId = _userConsentSchemaId;
         distributionCertificateSchemaId = _distributionCertificateSchemaId;
-        airdropExecutionSchemaId = _airdropExecutionSchemaId;
+    }
+
+    function setComposerAddress(address _composer, uint32 _composerEid) external onlyOwner {
+        aeroDumpComposer = _composer;
+        aeroDumpComposerEid = _composerEid;
     }
 
     /**
@@ -149,7 +150,24 @@ contract AeroDumpAttestations is Ownable, OApp {
         s_isVerified[msg.sender] = true;
         s_projectIds[msg.sender] = projectId;
 
-        // MessagingFee memory fee = _quote(uint32(40245), "hi_there", options, false);
+        // Encode the user's address as the message
+        bytes memory encodedMessage = abi.encode(msg.sender);
+
+        // Define the MessagingFee (for simplicity, let's assume zero fees here, but you should calculate the actual
+        // fees)
+        MessagingFee memory fee = MessagingFee({
+            nativeFee: 0, // Set the appropriate native fee here
+            lzTokenFee: 0 // Set the appropriate lzToken fee here
+         });
+
+        // Send the composed message to the SendComposer contract
+        _lzSend(
+            aeroDumpComposerEid, // Destination chain ID
+            encodedMessage, // Encoded message containing the sender's address
+            "", // Options
+            fee, // Fee
+            msg.sender // Refund address
+        );
 
         return projectId;
     }
@@ -241,41 +259,29 @@ contract AeroDumpAttestations is Ownable, OApp {
         spInstance.attest(a, "", "", "");
     }
 
-    function send(uint32 _dstEid, string memory _message, bytes calldata _options) external payable {
-        // Encodes the message before invoking _lzSend.
-        // Replace with whatever data you want to send!
-        bytes memory _payload = abi.encode(_message);
-        _lzSend(
-            _dstEid,
-            _payload,
-            _options,
-            // Fee in native gas and ZRO token.
-            MessagingFee(msg.value, 0),
-            // Refund address in case of failed source message.
-            payable(msg.sender)
-        );
-    }
-
     /**
      * @dev Called when data is received from the protocol. It overrides the equivalent function in the parent contract.
      * Protocol messages are defined as packets, comprised of the following parameters.
      * @param _origin A struct containing information about where the packet came from.
      * @param _guid A global unique identifier for tracking the packet.
      * @param payload Encoded message.
+     * @param _executor Executor address as specified by the OApp.
      */
     function _lzReceive(
         Origin calldata _origin,
         bytes32 _guid,
         bytes calldata payload,
-        address, // Executor address as specified by the OApp.
+        address _executor,
         bytes calldata // Any extra data or options to trigger on receipt.
     )
         internal
         override
     {
         // Decode the payload to get the message
-        // In this case, type is string, but depends on your encoding!
-        data = abi.decode(payload, (string));
+        (string memory _message) = abi.decode(payload, (string));
+        data = _message;
+
+        // Optional: Further process the message if needed.
     }
 
     /**
