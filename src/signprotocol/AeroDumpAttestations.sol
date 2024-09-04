@@ -8,6 +8,7 @@ import {Attestation} from "@signprotocol/signprotocol-evm/src/models/Attestation
 import {DataLocation} from "@signprotocol/signprotocol-evm/src/models/DataLocation.sol";
 import {OApp, Origin, MessagingFee} from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
 import {MessagingParams, MessagingFee, MessagingReceipt} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
+import {OptionsBuilder} from "../library/OptionsBuilder.sol";
 
 /**
  * @title AeroDumpAttestations
@@ -17,10 +18,9 @@ import {MessagingParams, MessagingFee, MessagingReceipt} from "@layerzerolabs/lz
  */
 
 contract AeroDumpAttestations is Ownable, OApp {
+    using OptionsBuilder for bytes;
     // @dev The instance of the Sign Protocol interface.
     ISP public spInstance;
-
-    string public data;
 
     // @dev Custom error for when a user is not authorized to verify a project.
     error ProjectIsVerified();
@@ -40,6 +40,8 @@ contract AeroDumpAttestations is Ownable, OApp {
 
     // @dev The next project ID to be assigned.
     uint256 private nextProjectId;
+
+    uint32 public composerEid;
 
     // @dev Mapping of addresses to boolean indicating whether they are verified project managers.
     mapping(address => bool) private s_isVerified;
@@ -88,6 +90,14 @@ contract AeroDumpAttestations is Ownable, OApp {
         airdropExecutionSchemaId = _airdropExecutionSchemaId;
     }
 
+    /**
+     * @notice Sets the AeroDumpComposer endpoint ID.
+     * @param _dstEid The destination endpoint ID.
+     */
+    function setComposerEid(uint32 _dstEid) external onlyOwner {
+        composerEid = _dstEid;
+    }
+
     // /**
     //  * //  * @notice Registers a new project with the system.
     //  * //  * @dev Creates an attestation for the project registration.
@@ -121,6 +131,7 @@ contract AeroDumpAttestations is Ownable, OApp {
     /**
      * @notice Verifies a project by recording detailed information.
      * @dev Creates an attestation for project verification. This function can only be called once per address.
+     * @dev Integrated with LayerZero omnichain messaging to send the verified address to composer.
      * @param projectName The name of the project being verified.
      * @param description A detailed description of the project.
      * @param websiteUrl The official website URL of the project.
@@ -136,7 +147,7 @@ contract AeroDumpAttestations is Ownable, OApp {
         string memory description,
         string memory websiteUrl,
         string memory socialMediaUrl
-    ) external returns (uint256 projectId) {
+    ) external payable returns (uint256 projectId) {
         require(!s_isVerified[msg.sender], ProjectIsVerified());
 
         // Perform basic checks on the provided information
@@ -178,8 +189,21 @@ contract AeroDumpAttestations is Ownable, OApp {
         s_isVerified[msg.sender] = true;
         s_projectIds[msg.sender] = projectId;
 
-        // MessagingFee memory fee = _quote(uint32(40245), "hi_there", options, false);
-
+        //Prepare params for layerzero send method
+        bytes memory _payload = abi.encode(msg.sender);
+        bytes memory options = OptionsBuilder
+            .newOptions()
+            .addExecutorLzReceiveOption(70000, 0);
+        //Send encoded address to AeroDumpComposer
+        _lzSend(
+            composerEid,
+            _payload,
+            options,
+            // Fee in native gas and ZRO token.
+            MessagingFee(msg.value, 0),
+            // Refund address in case of failed source message.
+            payable(msg.sender)
+        );
         return projectId;
     }
 
@@ -332,18 +356,17 @@ contract AeroDumpAttestations is Ownable, OApp {
         spInstance.attest(a, "", "", "");
     }
 
-    function send(
-        uint32 _dstEid,
-        string memory _message,
-        bytes calldata _options
-    ) external payable {
+    function send(uint32 _dstEid, string memory _message) external payable {
         // Encodes the message before invoking _lzSend.
         // Replace with whatever data you want to send!
         bytes memory _payload = abi.encode(_message);
+        bytes memory options = OptionsBuilder
+            .newOptions()
+            .addExecutorLzReceiveOption(60000, 0);
         _lzSend(
             _dstEid,
             _payload,
-            _options,
+            options,
             // Fee in native gas and ZRO token.
             MessagingFee(msg.value, 0),
             // Refund address in case of failed source message.
@@ -367,7 +390,7 @@ contract AeroDumpAttestations is Ownable, OApp {
     ) internal override {
         // Decode the payload to get the message
         // In this case, type is string, but depends on your encoding!
-        data = abi.decode(payload, (string));
+        abi.decode(payload, (string));
     }
 
     /**

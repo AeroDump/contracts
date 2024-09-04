@@ -6,6 +6,7 @@ import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/autom
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {AeroDumpAttestations} from "./signprotocol/AeroDumpAttestations.sol";
 import {OApp, MessagingFee, Origin} from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
+import {ILayerZeroComposer} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroComposer.sol";
 
 /**
  * @title AerodumpOFTAdapter
@@ -17,7 +18,11 @@ import {OApp, MessagingFee, Origin} from "@layerzerolabs/oapp-evm/contracts/oapp
  * @dev Using an existing ERC20 token, this contract can be deployed on different addresses for different tokens.
  * @dev Consider we give in USDC address in constructor, airdrop will be done using *only* USDC.
  */
-contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
+contract AerodumpOFTAdapter is
+    OFTAdapter,
+    AutomationCompatibleInterface,
+    ILayerZeroComposer
+{
     /**
      * @dev Struct representing an airdrop project.
      */
@@ -43,7 +48,6 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
     }
 
     string public data;
-
     /**
      * @dev Emitted when tokens are locked by a caller into this contract.
      */
@@ -522,42 +526,16 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         return equalDistributionQueue[equalDistributionQueueFrontIndex];
     }
 
-    function send(
-        uint32 _dstEid,
-        string memory _message,
-        bytes calldata _options
-    ) external payable {
-        // Encodes the message before invoking _lzSend.
-        // Replace with whatever data you want to send!
-        bytes memory _payload = abi.encode(_message);
-        _lzSend(
-            _dstEid,
-            _payload,
-            _options,
-            // Fee in native gas and ZRO token.
-            MessagingFee(msg.value, 0),
-            // Refund address in case of failed source message.
-            payable(msg.sender)
-        );
-    }
+    function lzCompose(
+        address _oApp,
+        bytes32 /*_guid*/,
+        bytes calldata _message,
+        address,
+        bytes calldata
+    ) external payable override {
+        // Perform checks to make sure composed message comes from correct OApp.
 
-    /**
-     * @dev Called when data is received from the protocol. It overrides the equivalent function in the parent contract.
-     * Protocol messages are defined as packets, comprised of the following parameters.
-     * @param _origin A struct containing information about where the packet came from.
-     * @param _guid A global unique identifier for tracking the packet.
-     * @param payload Encoded message.
-     */
-    function _lzReceive(
-        Origin calldata _origin,
-        bytes32 _guid,
-        bytes calldata payload,
-        address, // Executor address as specified by the OApp.
-        bytes calldata // Any extra data or options to trigger on receipt.
-    ) internal override {
-        //update mappings for user
         // Decode the payload to get the message
-        // In this case, type is string, but depends on your encoding!
-        data = abi.decode(payload, (string));
+        data = abi.decode(_message, (string));
     }
 }
