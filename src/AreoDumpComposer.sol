@@ -12,7 +12,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  * @dev Deployed on a different chain than Attestations(Hedera).
  */
 contract AeroDumpComposer is OApp {
-    string public data;
+    address public data;
     address public adapter;
 
     constructor(
@@ -53,7 +53,9 @@ contract AeroDumpComposer is OApp {
         //update mappings for user
         // Decode the payload to get the message
         // In this case, type is string, but depends on your encoding!
-        data = abi.decode(payload, (string));
+        data = abi.decode(payload, (address));
         // endpoint.sendCompose(adapter, _guid, 0, payload);
+
+        // call adapter to set the msg.sender as verified in the adapter
     }
 }

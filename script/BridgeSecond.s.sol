@@ -11,6 +11,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract BridgeSecondScript is Script {
     //running on op sepolia
     function run() public {
+        // sets the peer both ways from composer to attestations.
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
         AeroDumpComposer(0x141eA5d5536d81123B4F34Fc3F3aEbd9603aa1AB).setPeer(

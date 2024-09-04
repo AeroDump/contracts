@@ -15,10 +15,7 @@ contract Console is Script {
         console.log(
             AeroDumpComposer(0x141eA5d5536d81123B4F34Fc3F3aEbd9603aa1AB).data()
         );
-        console.log(
-            AerodumpOFTAdapter(0xc1291707f5Af0aBEaC2bf483053330BF1798189d)
-                .data()
-        );
+
         // console.log(
         //     AerodumpOFTAdapter(0x385928e1e9648EF02ec4a44670e9B0D5AFD8e499)
         //         .data()

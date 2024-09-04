@@ -12,6 +12,7 @@ contract BridgeScript is Script {
     function run() public {
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
+        //calls attestatios's set peer both ways to composer
         AeroDumpAttestations(0x2AEf4AB12A5b8dBD420AbC44CE5C3ac562352526)
             .setPeer(
                 uint32(config.getOpSepoliaConfig().chainEid),
