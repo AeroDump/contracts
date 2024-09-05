@@ -6,13 +6,13 @@ import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/autom
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {OApp, MessagingFee, Origin} from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
 import {ILayerZeroComposer} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroComposer.sol";
-import {IAerodumpOFTAdapter} from "./interfaces/IAerodumpOFTAdapter.sol";
 
 /**
  * @title AerodumpOFTAdapter
  * @author Aerodump
  * @notice This contract integrates with LayerZero protocol to inherit the vault standards for managing airdrop
  * transactions.
+ * @notice This contracts also receives the attestations data from base sepolia, using LayerZero omnichain messaging.
  * @notice This contract also integrates with chainlink automation to automate the transfer of rewards to recipients.
  * @dev This contract extends the OFTAdapter contract.
  * @dev Using an existing ERC20 token, this contract can be deployed on different addresses for different tokens.
@@ -21,8 +21,7 @@ import {IAerodumpOFTAdapter} from "./interfaces/IAerodumpOFTAdapter.sol";
 contract AerodumpOFTAdapter is
     OFTAdapter,
     AutomationCompatibleInterface,
-    ILayerZeroComposer,
-    IAerodumpOFTAdapter
+    ILayerZeroComposer
 {
     /**
      * @dev Struct representing an airdrop project.
@@ -50,10 +49,17 @@ contract AerodumpOFTAdapter is
 
     address public USER;
     uint256 public PROJECTID;
-    address public composer;
-    mapping(address => bool) public isVerifiedUser;
 
-    event AerodumpOFTAdapter__UserVerified(address user);
+    /**
+     * @notice The address of AeroDumpComposer contract.
+     */
+    address public composer;
+
+    /**
+     * @dev Emitted when a user is verified, i.e when attestations contract sends the verified user address to this via compose call.
+     */
+    event AerodumpOFTAdapter__UserVerified(address user, uint256 projectId);
+
     /**
      * @dev Emitted when tokens are locked by a caller into this contract.
      */
@@ -73,8 +79,6 @@ contract AerodumpOFTAdapter is
         uint256 dstChainId
     );
 
-    event ProjectVerified(string projectName);
-
     /**
      * @dev Global variable for token address used in this deployment.
      */
@@ -85,6 +89,9 @@ contract AerodumpOFTAdapter is
      */
     uint256 public equalDistributionQueueFrontIndex;
 
+    /**
+     * @dev Gobal counter indicating the starting index of the unequal distribution queue.
+     */
     uint256 public unequalDistributionCSVQueueFrontIndex;
 
     /**
@@ -97,6 +104,9 @@ contract AerodumpOFTAdapter is
      */
     Recipient[] public equalDistributionQueue;
 
+    /**
+     * @dev An array of "Recipient" structs that are waiting for airdrop with unequal distribution.
+     */
     Recipient[] public unequalDistributionCSVQueue;
 
     /**
@@ -110,6 +120,11 @@ contract AerodumpOFTAdapter is
     mapping(uint256 => address) public projectIdToOwner;
 
     /**
+     * @dev A mapping from the verified project owner address to bool.
+     */
+    mapping(address => bool) public isVerifiedUser;
+
+    /**
      * @dev Modifier to check if the user has a project.
      */
     modifier shouldHaveAnActiveProject() {
@@ -120,11 +135,17 @@ contract AerodumpOFTAdapter is
         _;
     }
 
+    /**
+     * @dev Modifier to check if caller is AeroDumpComposer.
+     */
     modifier onlyComposer() {
         require(msg.sender == composer, "Only composer can call this function");
         _;
     }
 
+    /**
+     * @dev Modifier to check if the user is verified in AeroDumpAttestations.
+     */
     modifier projectShouldBeVerified() {
         require(isVerifiedUser[msg.sender], "Project owner must be verified!");
         _;
@@ -145,20 +166,15 @@ contract AerodumpOFTAdapter is
         Ownable(_owner)
     {
         TOKEN_ADDRESS = _token;
-        // attestationContract = AeroDumpAttestations(
-        //     _aeroDumpAttestationsAddress
-        // );
         equalDistributionQueueFrontIndex = 0;
     }
 
+    /**
+     *
+     * @notice Sets the address for AeroDumpComposer.
+     */
     function setComposer(address _composer) external onlyOwner {
         composer = _composer;
-    }
-
-    function updateVerifiedUser(
-        string memory projectName
-    ) external onlyComposer {
-        // data = projectName;
     }
 
     /**
@@ -363,6 +379,38 @@ contract AerodumpOFTAdapter is
         unequalDistributionHelper();
     }
 
+    /**
+     * @notice Handles incoming composed messages from LayerZero.
+     * @dev receives verified project id and project owner address from AeroDumpAttestations Through AeroDumpComposer.
+     * @dev Decodes the message payload and updates the state, sets isVerifiedUser as true.
+     * @param _oApp The address of the originating OApp.
+     */
+    function lzCompose(
+        address _oApp,
+        bytes32 /*_guid*/,
+        bytes calldata _message,
+        address,
+        bytes calldata
+    ) external payable override {
+        // Decode the string message (projectName)
+        (address user, uint256 projectId) = abi.decode(
+            _message,
+            (address, uint256)
+        );
+
+        // Verify the user on this contract
+        isVerifiedUser[user] = true;
+        // Update the state
+        // Do something with the projectName (e.g., log it or update state)
+        // data = projectName;
+
+        emit AerodumpOFTAdapter__UserVerified(user, projectId);
+    }
+
+    /**
+     * @notice This function takes in the first element of the equalDistributionQueue and sends the airdrop amount.
+     * @dev This internal function is called by the `performUpkeep` function to automate sending of airdrops.
+     */
     function equalDistributionHelper() internal {
         if (equalDistributionQueue.length == 0) return;
         require(
@@ -395,6 +443,10 @@ contract AerodumpOFTAdapter is
         equalDistributionQueueFrontIndex++;
     }
 
+    /**
+     * @notice This function takes in the first element of the unequalDistributionQueue and sends the airdrop amount.
+     * @dev This internal function is called by the `performUpkeep` function to automate sending of airdrops.
+     */
     function unequalDistributionHelper() internal {
         if (unequalDistributionCSVQueue.length == 0) return;
         require(
@@ -483,6 +535,11 @@ contract AerodumpOFTAdapter is
         return projects[_projectId];
     }
 
+    /**
+     * @notice Returns the project Id of the project owner.
+     * @param user Address of the project owner.
+     * @return uint256 Project Id.
+     */
     function getProjectOwnerToId(
         address user
     )
@@ -495,6 +552,22 @@ contract AerodumpOFTAdapter is
         return projectOwnerToId[user];
     }
 
+    /**
+     * @notice Returns true if the project owner is verified.
+     * @param projectOwner Address of the project owner.
+     * @return bool Is user verified.
+     */
+    function getIsUserVerified(
+        address projectOwner
+    ) public view returns (bool) {
+        return isVerifiedUser[projectOwner];
+    }
+
+    /**
+     * @notice Returns the address of the project owner.
+     * @param projectId Project Id of the project owner.
+     * @return address Project owner.
+     */
     function getProjectIdToOwner(
         uint256 projectId
     )
@@ -515,6 +588,10 @@ contract AerodumpOFTAdapter is
         return TOKEN_ADDRESS;
     }
 
+    /**
+     * @notice Returns the first element of the equal distribution queue.
+     * @return Recipient struct.
+     */
     function getEqualDistributionRecipientQueueFront()
         public
         view
@@ -523,24 +600,16 @@ contract AerodumpOFTAdapter is
         return equalDistributionQueue[equalDistributionQueueFrontIndex];
     }
 
-    function lzCompose(
-        address _oApp,
-        bytes32 /*_guid*/,
-        bytes calldata _message,
-        address,
-        bytes calldata
-    ) external payable override {
-        // Decode the string message (projectName)
-        (address user, uint256 projectId) = abi.decode(
-            _message,
-            (address, uint256)
-        );
-        USER = user;
-        PROJECTID = projectId;
-
-        // Do something with the projectName (e.g., log it or update state)
-        // data = projectName;
-
-        // emit ProjectVerified(projectName);
+    /**
+     * @notice Returns the first element of the unequal distribution queue.
+     * @return Recipient struct.
+     */
+    function getUnequalDistributionCSVRecipientQueueFront()
+        public
+        view
+        returns (Recipient memory)
+    {
+        return
+            unequalDistributionCSVQueue[unequalDistributionCSVQueueFrontIndex];
     }
 }

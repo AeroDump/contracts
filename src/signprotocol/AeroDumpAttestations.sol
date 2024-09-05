@@ -2,7 +2,6 @@
 pragma solidity 0.8.26;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ISP} from "@signprotocol/signprotocol-evm/src/interfaces/ISP.sol";
 import {Attestation} from "@signprotocol/signprotocol-evm/src/models/Attestation.sol";
 import {DataLocation} from "@signprotocol/signprotocol-evm/src/models/DataLocation.sol";
@@ -18,7 +17,6 @@ import {OptionsBuilder} from "../library/OptionsBuilder.sol";
 contract AeroDumpAttestations is Ownable, OApp {
     using OptionsBuilder for bytes;
     // @dev The instance of the Sign Protocol interface.
-
     ISP public spInstance;
 
     // @dev Custom error for when a user is not authorized to verify a project.
@@ -37,6 +35,7 @@ contract AeroDumpAttestations is Ownable, OApp {
     // @dev The next project ID to be assigned.
     uint256 private nextProjectId;
 
+    // @dev Layerzero eid for AeroDumpComposer
     uint32 public composerEid;
 
     // @dev Mapping of addresses to boolean indicating whether they are verified project managers.
@@ -49,6 +48,7 @@ contract AeroDumpAttestations is Ownable, OApp {
      * @dev Constructor initializes the Sign Protocol instance.
      * @param initialOwner The address of the contract owner.
      * @param _spInstance The address of the Sign Protocol instance.
+     * @param _endpoint The address of this OApp Layerzero endpoint.
      */
     constructor(
         address initialOwner,
@@ -89,7 +89,7 @@ contract AeroDumpAttestations is Ownable, OApp {
     /**
      * @notice Verifies a project by recording detailed information.
      * @dev Creates an attestation for project verification. This function can only be called once per address.
-     * @dev Integrated with LayerZero omnichain messaging to send the verified address to composer.
+     * @dev Integrated with LayerZero omnichain messaging to send the verified address to AeroDumpComposer.
      * @param projectName The name of the project being verified.
      * @param description A detailed description of the project.
      * @param websiteUrl The official website URL of the project.
@@ -148,11 +148,11 @@ contract AeroDumpAttestations is Ownable, OApp {
         s_projectIds[msg.sender] = projectId;
 
         // Prepare params for LayerZero send method
-        bytes memory payload = abi.encode(msg.sender, projectId); // Send projectName as message
+        bytes memory payload = abi.encode(msg.sender, projectId); // Send address of verified user and project ID
         bytes memory options = OptionsBuilder
             .newOptions()
-            .addExecutorLzReceiveOption(55000, 0)
-            .addExecutorLzComposeOption(0, 55000, 0);
+            .addExecutorLzReceiveOption(55_000, 0)
+            .addExecutorLzComposeOption(0, 55_000, 0);
 
         _lzSend(
             composerEid,
@@ -257,6 +257,12 @@ contract AeroDumpAttestations is Ownable, OApp {
         spInstance.attest(a, "", "", "");
     }
 
+    /**
+     * @notice Layerzero send method, unaltered.
+     * @dev This function us used to test omnichain messaging, custom _lzSend is already implemented in verifyProject.
+     * @param _dstEid LayerZero endpoint ID.
+     * @param _message Message to be sent.
+     */
     function send(uint32 _dstEid, string memory _message) external payable {
         // Encodes the message before invoking _lzSend.
         // Replace with whatever data you want to send!

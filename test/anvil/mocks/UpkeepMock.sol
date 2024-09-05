@@ -10,6 +10,7 @@ contract MockUpkeep {
     uint256 public performGasToBurn;
 
     event UpkeepPerformedWith(bytes upkeepData);
+
     error CheckRevert();
     error PerformRevert();
 
@@ -37,19 +38,17 @@ contract MockUpkeep {
         performGasToBurn = value;
     }
 
-    function checkUpkeep(
-        bytes calldata
-    ) external view returns (bool callable, bytes memory executedata) {
+    function checkUpkeep(bytes calldata) external view returns (bool callable, bytes memory executedata) {
         if (shouldCheckRevert) revert CheckRevert();
         uint256 startGas = gasleft();
-        while (startGas - gasleft() < checkGasToBurn) {} // burn gas
+        while (startGas - gasleft() < checkGasToBurn) { } // burn gas
         return (checkResult, performData);
     }
 
     function performUpkeep(bytes calldata data) external {
         if (shouldPerformRevert) revert PerformRevert();
         uint256 startGas = gasleft();
-        while (startGas - gasleft() < performGasToBurn) {} // burn gas
+        while (startGas - gasleft() < performGasToBurn) { } // burn gas
         emit UpkeepPerformedWith(data);
     }
 }
