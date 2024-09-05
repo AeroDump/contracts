@@ -15,10 +15,10 @@ Built to support airdrops, marketing event rewards, and large-scale token transf
 - This lowers the barrier for entry, especially for those unfamiliar with complex Web3 wallet setups.
 
 **Hands-Free Automation with Multi-Network Support:**
-- Chainlink Automation allows for `automatic triggering` of the token distribution from the LayerZero vault, while `Chainlink CCIP` ensures that tokens can be distributed across `multiple networks`. This enables cross-chain token distribution without the need for constant developer or operator intervention.
+- Chainlink Automation allows for `automatic triggering` of the token distribution from the LayerZero vault, while `LayerZero CCIP` ensures that tokens can be distributed across `multiple networks`. This enables cross-chain token distribution without the need for constant developer or operator intervention.
 
 **Cross-Chain Flexibility:**
-- With Chainlink CCIP, users or project owners can distribute tokens across various networks like `Ethereum, Solana, Avalanche`, and others. The tokens are `bridged seamlessly` to the chosen network during the distribution process.
+- With LayerZero CCIP, users or project owners can distribute tokens across various networks like `Ethereum, Solana, Avalanche`, and others. The tokens are `bridged seamlessly` to the chosen network during the distribution process.
 
 **LayerZero Vault for Secure Holding:**
 - The vault securely holds the tokens until the automation system triggers distribution. Tokens are only released when the conditions are met, ensuring safety and transparency.
@@ -48,7 +48,7 @@ graph TD;
    - Deposit the tokens into the LayerZero vault for distribution.
 
 5. **Automated Token Distribution**:
-   - Chainlink Automation distributes tokens to recipients based on the CSV file, with multi-chain support via Chainlink CCIP.
+   - Chainlink Automation distributes tokens to recipients based on the CSV file, with multi-chain support via LayerZero CCIP.
 
 6. **Check Distribution History**:
    - After completion, view all records on the history page using ENVIO on-chain indexing.
