@@ -206,7 +206,7 @@ contract AeroDumpAttestations is Ownable, OApp {
         uint256 projectId,
         address tokenAddress,
         uint256 amount
-    ) external {
+    ) public {
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(msg.sender);
 
@@ -222,8 +222,8 @@ contract AeroDumpAttestations is Ownable, OApp {
             recipients: recipients,
             data: abi.encode(projectId, tokenAddress, amount)
         });
-
         spInstance.attest(a, "", "", "");
+        s_lockedTokens[msg.sender] = true;
     }
 
     /**
@@ -297,7 +297,13 @@ contract AeroDumpAttestations is Ownable, OApp {
     ) internal override {
         // Decode the payload to get the message
         // In this case, type is string, but depends on your encoding!
-        abi.decode(payload, (string));
+        (
+            address projectOwner,
+            uint256 projectId,
+            uint256 amount,
+            address token
+        ) = abi.decode(payload, (address, uint256, uint256, address));
+        recordLockTokens(projectId, token, amount);
     }
 
     /**

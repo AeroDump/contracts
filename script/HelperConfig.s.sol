@@ -1,9 +1,9 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { Script } from "forge-std/Script.sol";
-import { console } from "forge-std/Test.sol";
-import { MockV3Aggregator } from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
+import {Script} from "forge-std/Script.sol";
+import {console} from "forge-std/Test.sol";
+import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
 
 contract HelperConfig is Script {
     struct NetworkConfig {
@@ -47,7 +47,7 @@ contract HelperConfig is Script {
             _distributionCertificateSchemaId: DISTRIBUTION_CERTIFICATE_SCHEMA_ID,
             _initialOwner: msg.sender,
             _ispAddress: 0x4e4af2a21ebf62850fD99Eb6253E1eFBb56098cD, //0x878c92FD89d8E0B93Dc0a3c907A2adc7577e39c5
-                // Sepolia
+            // Sepolia
             // testnet address0x6EDCE65403992e310A62460808c4b910D972f10f
             chainEid: 40_245
         });
@@ -66,7 +66,7 @@ contract HelperConfig is Script {
             _distributionCertificateSchemaId: DISTRIBUTION_CERTIFICATE_SCHEMA_ID,
             _initialOwner: msg.sender,
             _ispAddress: 0x4e4af2a21ebf62850fD99Eb6253E1eFBb56098cD, //0x878c92FD89d8E0B93Dc0a3c907A2adc7577e39c5
-                // Sepolia
+            // Sepolia
             // testnet address0x6EDCE65403992e310A62460808c4b910D972f10f
             chainEid: 40_161
         });
@@ -75,7 +75,7 @@ contract HelperConfig is Script {
 
     function getOpSepoliaConfig() public view returns (NetworkConfig memory) {
         NetworkConfig memory opSepoliaConfig = NetworkConfig({
-            chainId: 11_155_420,
+            chainId: 11155420,
             tokenAddress: 0x5fd84259d66Cd46123540766Be93DFE6D43130D7,
             ZROTokenAddress: 0x6985884C4392D348587B19cb9eAAf157F13271cd,
             layerZeroEndpoint: 0x6EDCE65403992e310A62460808c4b910D972f10f,
@@ -85,7 +85,7 @@ contract HelperConfig is Script {
             _distributionCertificateSchemaId: DISTRIBUTION_CERTIFICATE_SCHEMA_ID,
             _initialOwner: msg.sender,
             _ispAddress: 0x4e4af2a21ebf62850fD99Eb6253E1eFBb56098cD, //0x878c92FD89d8E0B93Dc0a3c907A2adc7577e39c5
-                // Sepolia
+            // Sepolia
             // testnet address0x6EDCE65403992e310A62460808c4b910D972f10f
             chainEid: 40_232
         });
@@ -104,7 +104,7 @@ contract HelperConfig is Script {
             _distributionCertificateSchemaId: DISTRIBUTION_CERTIFICATE_SCHEMA_ID,
             _initialOwner: msg.sender,
             _ispAddress: 0x4e4af2a21ebf62850fD99Eb6253E1eFBb56098cD, //0x878c92FD89d8E0B93Dc0a3c907A2adc7577e39c5
-                // Sepolia
+            // Sepolia
             // testnet address0x6EDCE65403992e310A62460808c4b910D972f10f
             chainEid: 40_231
         });

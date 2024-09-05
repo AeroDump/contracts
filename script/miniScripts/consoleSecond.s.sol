@@ -2,21 +2,20 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
-import {AeroDumpComposer} from "../../../src/layerzero/AeroDumpComposer.sol";
-import {AerodumpOFTAdapter} from "../../src/layerzero/AerodumpOFTAdapter.sol";
+import {AeroDumpAttestations} from "../../../src/signprotocol/AeroDumpAttestations.sol";
 import {HelperConfig} from "../../../script/HelperConfig.s.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract Console is Script {
-    //running on op sepolia
+contract ConsoleSecond is Script {
+    //running on base sepolia
     function run() public {
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
         // AeroDumpComposer composer = AeroDumpComposer(0xa7F96A7ba1b3Ee324dD9d9b115EFEa827bE67d2a);
-        AerodumpOFTAdapter adapter = AerodumpOFTAdapter(
-            0x6dA70c3c286e44F8965c0C26d7D47dba074e9DB0
+        AeroDumpAttestations attestations = AeroDumpAttestations(
+            0x651f45D00c1FecBc345F7Ee708ffe4aB57Aa46F6
         );
-        console.log(adapter.getIsUserVerified(msg.sender));
+        console.log(attestations.getIsTokensLoked());
 
         vm.stopBroadcast();
     }
