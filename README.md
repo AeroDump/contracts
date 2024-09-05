@@ -23,9 +23,6 @@ Built to support airdrops, marketing event rewards, and large-scale token transf
 **LayerZero Vault for Secure Holding:**
 - The vault securely holds the tokens until the automation system triggers distribution. Tokens are only released when the conditions are met, ensuring safety and transparency.
 
-**Scalability and Efficiency:**
-- By leveraging both `Chainlink Automation` and `CCIP`, the system scales to handle bulk token transfers across various blockchains without the need for manual monitoring or intervention.
-
 ## User Journey
 ```mermaid
 graph TD;
