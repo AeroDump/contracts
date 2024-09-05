@@ -6,14 +6,14 @@ import { AeroDumpComposer } from "../../src/layerzero/AeroDumpComposer.sol";
 import { HelperConfig } from "../../script/HelperConfig.s.sol";
 
 contract ComposerDeploy is Script {
-    //deploy on op sepolia, 0xa7F96A7ba1b3Ee324dD9d9b115EFEa827bE67d2a
+    //deploy on hedera testnet
     function run() public {
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
         console.log("script running");
         AeroDumpComposer composer = new AeroDumpComposer(
             msg.sender,
-            config.getOpSepoliaConfig().layerZeroEndpoint //layerzero endpoint for Op sepolia
+            config.getHederaTestnetConfig().layerZeroEndpoint //layerzero endpoint for Op sepolia
         );
         console.log("composer Contract Address", address(composer));
 

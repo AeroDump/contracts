@@ -9,13 +9,14 @@ import { HelperConfig } from "../../script/HelperConfig.s.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract BridgeSecondScript is Script {
-    //running on op sepolia
+    //deploy on hedera testnet
     function run() public {
         // sets the peer both ways from composer to attestations.
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
         AeroDumpComposer(0xa7F96A7ba1b3Ee324dD9d9b115EFEa827bE67d2a).setPeer(
-            uint32(config.getBaseSepoliaConfig().chainEid), addressToBytes32(0x33E21B633FE6f91bAba56d5B08591f572b9Cee73)
+            uint32(config.getHederaTestnetConfig().chainEid),
+            addressToBytes32(0x33E21B633FE6f91bAba56d5B08591f572b9Cee73)
         );
 
         address[] memory adapterAddresses = new address[](1); // Adjust size as needed

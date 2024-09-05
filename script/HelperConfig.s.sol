@@ -35,6 +35,25 @@ contract HelperConfig is Script {
         // }
     }
 
+    function getHederaTestnetConfig() public view returns (NetworkConfig memory) {
+        NetworkConfig memory hederaTestnetConfig = NetworkConfig({
+            chainId: 421_614,
+            tokenAddress: 0x0000000000000000000000000000000000068cDa, //EVM Compatible USDC Address
+            ZROTokenAddress: 0x6985884C4392D348587B19cb9eAAf157F13271cd,
+            layerZeroEndpoint: 0xbD672D1562Dd32C23B563C989d8140122483631d,
+            _verifyProjectCertificateSchemaId: VERIFY_PROJECT_CERTIFICATE_SCHEMA_ID,
+            _kycVerificationSchemaId: KYC_VERIFICATION_SCHEMA_ID,
+            _tokenDepositSchemaId: TOKEN_DEPOSIT_SCHEMA_ID,
+            _distributionCertificateSchemaId: DISTRIBUTION_CERTIFICATE_SCHEMA_ID,
+            _initialOwner: msg.sender,
+            _ispAddress: 0x4e4af2a21ebf62850fD99Eb6253E1eFBb56098cD, //0x878c92FD89d8E0B93Dc0a3c907A2adc7577e39c5
+                // Sepolia
+            // testnet address0x6EDCE65403992e310A62460808c4b910D972f10f
+            chainEid: 40_285
+        });
+        return hederaTestnetConfig;
+    }
+
     function getBaseSepoliaConfig() public view returns (NetworkConfig memory) {
         NetworkConfig memory baseSepoliaConfig = NetworkConfig({
             chainId: vm.envUint("BASE_SEPOLIA_CHAIN_ID"),

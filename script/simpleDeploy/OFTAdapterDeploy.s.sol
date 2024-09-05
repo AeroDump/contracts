@@ -9,12 +9,12 @@ import { HelperConfig } from "../HelperConfig.s.sol";
 contract OFTAdapterDeploy is Script {
     HelperConfig config = new HelperConfig();
 
-    //deploy on op sepolia , 0xB2315a96B687E1dce36cc87bc0050D8E65775D22
+    //deploy on hedera testnet
     function run() public {
         vm.startBroadcast();
         console.log("script running");
         AerodumpOFTAdapter adapter = new AerodumpOFTAdapter(
-            config.getOpSepoliaConfig().tokenAddress, config.getOpSepoliaConfig().layerZeroEndpoint, msg.sender
+            config.getHederaTestnetConfig().tokenAddress, config.getHederaTestnetConfig().layerZeroEndpoint, msg.sender
         );
         console.log("adapter", address(adapter));
         vm.stopBroadcast();

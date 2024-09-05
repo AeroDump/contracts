@@ -8,7 +8,7 @@ import { HelperConfig } from "../../../script/HelperConfig.s.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Console is Script {
-    //running on op sepolia
+    //deploy on hedera testnet
     function run() public {
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
