@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {OApp, MessagingFee, Origin} from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IAerodumpOFTAdapter} from "./interfaces/IAerodumpOFTAdapter.sol";
+import { OApp, MessagingFee, Origin } from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { IAerodumpOFTAdapter } from "../interfaces/IAerodumpOFTAdapter.sol";
 
 /**
  * @title AeroDumpComposer.
@@ -26,13 +26,24 @@ contract AeroDumpComposer is OApp {
     event AeroDumpComposer__ComposeSent(address user, uint256 projectId);
 
     /**
+     * @notice Is triggered when adapter addresses are updated.
+     * @param adapters Array of addresses of all deployed adapters.
+     */
+    event AeroDumpComposer__AdapterAddressesUpdated(address[] adapters);
+
+    /**
+     * @notice Emitted when a message is sent to a destination endpoint.
+     * @param dstEid The LayerZero endpoint ID of the destination chain.
+     * @param composedAddress The address that the message is composed for and sent to.
+     * @param message The message content that was sent.
+     */
+    event AeroDumpComposer__MessageSent(uint32 dstEid, address composedAddress, string message);
+
+    /**
      * @param initialOwner Owner address.
      * @param _endpoint Address of this Layerzero OApp endpoint.
      */
-    constructor(
-        address initialOwner,
-        address _endpoint
-    ) OApp(_endpoint, initialOwner) Ownable(initialOwner) {}
+    constructor(address initialOwner, address _endpoint) OApp(_endpoint, initialOwner) Ownable(initialOwner) { }
 
     /**
      * @notice This function sets the adapter addresses for all deployed adapters for different currencies.
@@ -40,10 +51,10 @@ contract AeroDumpComposer is OApp {
      * @dev Only callable mods.
      * @param _adapters Array of addresses of all deployed adapters.
      */
-    function setAdapterAddresses(
-        address[] calldata _adapters
-    ) external onlyOwner {
+    function setAdapterAddresses(address[] calldata _adapters) external onlyOwner {
         adapters = _adapters;
+
+        emit AeroDumpComposer__AdapterAddressesUpdated(_adapters);
     }
 
     /**
@@ -57,7 +68,10 @@ contract AeroDumpComposer is OApp {
         string memory _message,
         address _composedAddress,
         bytes calldata _options
-    ) external payable {
+    )
+        external
+        payable
+    {
         // Encodes the message before invoking _lzSend.
         bytes memory _payload = abi.encode(_message, _composedAddress);
         _lzSend(
@@ -69,12 +83,16 @@ contract AeroDumpComposer is OApp {
             // Refund address in case of failed source message.
             payable(msg.sender)
         );
+
+        emit AeroDumpComposer__MessageSent(_dstEid, _composedAddress, _message);
     }
 
     /**
-     * @notice Called when data is received from the protocol. It overrides the equivalent function in the parent contract.
+     * @notice Called when data is received from the protocol. It overrides the equivalent function in the parent
+     * contract.
      * Protocol messages are defined as packets, comprised of the following parameters.
-     * @dev This function has custom logic, when the verified project addresses are received, it sends them to the adapters.
+     * @dev This function has custom logic, when the verified project addresses are received, it sends them to the
+     * adapters.
      * @param _origin A struct containing information about where the packet came from.
      * @param _guid A global unique identifier for tracking the packet.
      * @param payload Encoded message.
@@ -85,12 +103,12 @@ contract AeroDumpComposer is OApp {
         bytes calldata payload,
         address, // Executor address as specified by the OApp.
         bytes calldata // Any extra data or options to trigger on receipt.
-    ) internal override {
+    )
+        internal
+        override
+    {
         // Decode the string message and composed address
-        (address user, uint256 projectId) = abi.decode(
-            payload,
-            (address, uint256)
-        );
+        (address user, uint256 projectId) = abi.decode(payload, (address, uint256));
 
         // Loop through all adapters and send the composed message
         for (uint256 i = 0; i < adapters.length; i++) {

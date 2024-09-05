@@ -2,7 +2,7 @@ import { Test, console } from "forge-std/Test.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 import { StdUtils } from "forge-std/StdUtils.sol";
 import { Script } from "forge-std/Script.sol";
-import { AerodumpOFTAdapter } from "../../../../src/AerodumpOFTAdapter.sol";
+import { AerodumpOFTAdapter } from "../../../../src/layerzero/AerodumpOFTAdapter.sol";
 import { AeroDumpAttestations } from "../../../../src/signprotocol/AeroDumpAttestations.sol";
 import { HelperConfig } from "../../../../script/HelperConfig.s.sol";
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
