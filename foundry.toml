@@ -2,6 +2,7 @@
 via_ir = true
 src = "src"
 out = "out"
+libs = ["lib"]
 solc = "0.8.26"
 bytecode_hash = "none"
 optimizer = true
@@ -19,7 +20,7 @@ remappings = [
     '@chainlink/contracts=lib/chainlink-brownie-contracts/contracts',
     '@openzeppelin/openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/',
     '@signprotocol/signprotocol-evm/src/=lib/sign-protocol-evm/src/',
-    'forge-std=lib/forge-std/src',
+    '@solidity-bytes-utils=lib/solidity-bytes-utils',
 ]
 
 

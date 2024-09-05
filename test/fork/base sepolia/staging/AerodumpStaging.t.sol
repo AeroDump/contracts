@@ -1,11 +1,11 @@
-import {Test, console} from "forge-std/Test.sol";
-import {StdCheats} from "forge-std/StdCheats.sol";
-import {StdUtils} from "forge-std/StdUtils.sol";
-import {Script} from "forge-std/Script.sol";
-import {AerodumpOFTAdapter} from "../../../../src/AerodumpOFTAdapter.sol";
-import {AeroDumpAttestations} from "../../../../src/signprotocol/AeroDumpAttestations.sol";
-import {HelperConfig} from "../../../../script/HelperConfig.s.sol";
-import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
+import { Test, console } from "forge-std/Test.sol";
+import { StdCheats } from "forge-std/StdCheats.sol";
+import { StdUtils } from "forge-std/StdUtils.sol";
+import { Script } from "forge-std/Script.sol";
+import { AerodumpOFTAdapter } from "../../../../src/layerzero/AerodumpOFTAdapter.sol";
+import { AeroDumpAttestations } from "../../../../src/signprotocol/AeroDumpAttestations.sol";
+import { HelperConfig } from "../../../../script/HelperConfig.s.sol";
+import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.10;
@@ -37,25 +37,18 @@ contract AerodumpStagingTest is StdCheats, StdUtils, Test, Script {
 
         vm.startPrank(owner);
         attestationscontract = new AeroDumpAttestations(
-            owner,
-            helperconfig.getBaseSepoliaConfig()._ispAddress
+            owner, helperconfig.getBaseSepoliaConfig()._ispAddress, 0x6EDCE65403992e310A62460808c4b910D972f10f
         );
         attestationscontract.setSchemaIds(
-            helperconfig
-                .getBaseSepoliaConfig()
-                ._verifyProjectCertificateSchemaId,
-            2,
-            3,
-            1,
-            2,
-            3,
-            4
+            helperconfig.getBaseSepoliaConfig()._verifyProjectCertificateSchemaId,
+            helperconfig.getBaseSepoliaConfig()._kycVerificationSchemaId,
+            helperconfig.getBaseSepoliaConfig()._tokenDepositSchemaId,
+            helperconfig.getBaseSepoliaConfig()._distributionCertificateSchemaId
         );
         adapter = new AerodumpOFTAdapter(
             helperconfig.getBaseSepoliaConfig().tokenAddress,
             helperconfig.getBaseSepoliaConfig().layerZeroEndpoint,
-            msg.sender,
-            address(attestationscontract)
+            msg.sender
         );
         vm.stopPrank();
     }
@@ -64,20 +57,14 @@ contract AerodumpStagingTest is StdCheats, StdUtils, Test, Script {
         vm.startPrank(projectOwner);
 
         uint256 projectId = attestationscontract.verifyProject(
-            "test project",
-            "test description,",
-            "www.testaerodump.com",
-            "www.website.com"
+            "test project", "test description,", "www.testaerodump.com", "www.website.com"
         );
         console.log("projectId", projectId);
         // attestationscontract.recordKYCVerification(projectOwner, true);
         vm.stopPrank();
         vm.prank(projectOwner2);
         uint256 projectId2 = attestationscontract.verifyProject(
-            "test project",
-            "test description,",
-            "www.testaerodump.com",
-            "www.website.com"
+            "test project", "test description,", "www.testaerodump.com", "www.website.com"
         );
         console.log("projectId2", projectId2);
     }
