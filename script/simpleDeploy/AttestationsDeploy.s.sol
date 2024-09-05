@@ -6,7 +6,7 @@ import { AeroDumpAttestations } from "../../src/signprotocol/AeroDumpAttestation
 import { HelperConfig } from "../../script/HelperConfig.s.sol";
 
 contract AttestationsDeploy is Script {
-    //deploy on base sepolia, 0x33E21B633FE6f91bAba56d5B08591f572b9Cee73
+    //deploy on base sepolia, 0x1A29d648b63Be6D40228e7fF6F7F8a641307B967
     function run() public {
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();

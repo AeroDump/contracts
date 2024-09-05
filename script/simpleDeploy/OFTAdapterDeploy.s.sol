@@ -3,7 +3,6 @@ pragma solidity 0.8.26;
 
 import "forge-std/Script.sol";
 import { AerodumpOFTAdapter } from "../../src/layerzero/AerodumpOFTAdapter.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { HelperConfig } from "../HelperConfig.s.sol";
 
 contract OFTAdapterDeploy is Script {
@@ -13,9 +12,16 @@ contract OFTAdapterDeploy is Script {
     function run() public {
         vm.startBroadcast();
         console.log("script running");
-        AerodumpOFTAdapter adapter = new AerodumpOFTAdapter(
-            config.getHederaTestnetConfig().tokenAddress, config.getHederaTestnetConfig().layerZeroEndpoint, msg.sender
-        );
+
+        // Get the token address and decimals
+        address tokenAddress = config.getHederaTestnetConfig().tokenAddress;
+        uint256 decimals = config.getUSDCDecimals();
+
+        console.log("Token Address:", tokenAddress);
+        console.log("Decimals:", decimals);
+
+        AerodumpOFTAdapter adapter =
+            new AerodumpOFTAdapter(tokenAddress, config.getHederaTestnetConfig().layerZeroEndpoint, msg.sender);
         console.log("adapter", address(adapter));
         vm.stopBroadcast();
     }

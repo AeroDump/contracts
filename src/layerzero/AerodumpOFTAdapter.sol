@@ -7,6 +7,7 @@ import { AutomationCompatibleInterface } from
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { OApp, MessagingFee, Origin } from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
 import { ILayerZeroComposer } from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroComposer.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title AerodumpOFTAdapter
@@ -88,7 +89,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface, ILayer
     /**
      * @dev Global variable for token address used in this deployment.
      */
-    address public TOKEN_ADDRESS;
+    IERC20 public usdcToken;
 
     /**
      * @dev Gobal counter indicating the starting index of the equal distribution queue.
@@ -171,7 +172,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface, ILayer
         OFTAdapter(_token, _layerZeroEndpoint, _owner)
         Ownable(_owner)
     {
-        TOKEN_ADDRESS = _token;
+        usdcToken = IERC20(_token);
         equalDistributionQueueFrontIndex = 0;
     }
 
@@ -510,14 +511,6 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface, ILayer
         returns (address)
     {
         return projectIdToOwner[projectId];
-    }
-
-    /**
-     * @notice Returns the token address used for this deployment.
-     * @return address Token address.
-     */
-    function getTokenAddress() public view returns (address) {
-        return TOKEN_ADDRESS;
     }
 
     /**

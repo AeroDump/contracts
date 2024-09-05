@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import { Script } from "forge-std/Script.sol";
 import { console } from "forge-std/Test.sol";
 import { MockV3Aggregator } from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
+import { IERC20, IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract HelperConfig is Script {
     struct NetworkConfig {
@@ -26,6 +27,7 @@ contract HelperConfig is Script {
     uint64 public constant DISTRIBUTION_CERTIFICATE_SCHEMA_ID = 2;
     address[] public verifierAddresses;
     NetworkConfig public ActiveConfig;
+    address public constant HEDERA_USDC_ADDERSS = 0x0000000000000000000000000000000000068cDa;
 
     constructor() {
         // if (block.chainid == 10) {
@@ -37,8 +39,8 @@ contract HelperConfig is Script {
 
     function getHederaTestnetConfig() public view returns (NetworkConfig memory) {
         NetworkConfig memory hederaTestnetConfig = NetworkConfig({
-            chainId: 421_614,
-            tokenAddress: 0x0000000000000000000000000000000000068cDa, //EVM Compatible USDC Address
+            chainId: 296,
+            tokenAddress: HEDERA_USDC_ADDERSS, //EVM Compatible USDC Address
             ZROTokenAddress: 0x6985884C4392D348587B19cb9eAAf157F13271cd,
             layerZeroEndpoint: 0xbD672D1562Dd32C23B563C989d8140122483631d,
             _verifyProjectCertificateSchemaId: VERIFY_PROJECT_CERTIFICATE_SCHEMA_ID,
@@ -149,5 +151,9 @@ contract HelperConfig is Script {
 
     function getActiveConfig() public view returns (NetworkConfig memory) {
         return ActiveConfig;
+    }
+
+    function getUSDCDecimals() public pure returns (uint8) {
+        return 6; // Assuming USDC has 6 decimal places
     }
 }
