@@ -17,6 +17,12 @@ Built to support airdrops, marketing event rewards, and large-scale token transf
 **Hands-Free Automation with Multi-Network Support:**
 - Chainlink Automation allows for `automatic triggering` of the token distribution from the LayerZero vault, while `LayerZero CCIP` ensures that tokens can be distributed across `multiple networks`. This enables cross-chain token distribution without the need for constant developer or operator intervention.
 
+**Cross-Chain Attestation Updates: **
+- When a user verifies a project on AeroDumpAttestations (which lives on Base Sepolia), attestation data is automatically updated in AeroDumpOFTAdapter via AeroDumpComposer using `LayerZero's omnichain messaging with the composed message pattern`. AeroDumpOFTAdapter and `AeroDumpComposer run on the Hedera chain`, ensuring `cross-chain data updates`.
+
+**LayerZero Omnichain Token Transfer: **
+- Users can lock tokens on supported chains, and recipients can receive those tokens on any chain they choose, utilizing `LayerZero’s omnichain token transfer feature`.
+
 **Cross-Chain Flexibility:**
 - With LayerZero CCIP, users or project owners can distribute tokens across various networks like `Ethereum, Solana, Avalanche`, and others. The tokens are `bridged seamlessly` to the chosen network during the distribution process.
 
