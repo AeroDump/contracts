@@ -20,9 +20,6 @@ Built to support airdrops, marketing event rewards, and large-scale token transf
 **Cross-Chain Flexibility:**
 - With Chainlink CCIP, users or project owners can distribute tokens across various networks like `Ethereum, Solana, Avalanche`, and others. The tokens are `bridged seamlessly` to the chosen network during the distribution process.
 
-**CSV File Management:**
-- The user uploads a CSV file containing recipient information (address, token amount, and network). This data is used by the automation to ensure accurate and efficient distribution across networks.
-
 **LayerZero Vault for Secure Holding:**
 - The vault securely holds the tokens until the automation system triggers distribution. Tokens are only released when the conditions are met, ensuring safety and transparency.
 
