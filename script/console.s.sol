@@ -13,25 +13,24 @@ contract Console is Script {
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
         AeroDumpComposer composer = AeroDumpComposer(
-            0x23960EE69b04e9DC87AE3D5E1e7799c6028edc16
+            0x6015bB11856889aE9E96E9635CA0D6757f44b71b
         );
         AerodumpOFTAdapter adapter = AerodumpOFTAdapter(
-            0xB8CEc1a1f2986E36284bC42Aa862b812150dD754
+            0xe473EffDC30EdBFb68990A517A21307d287CcbB3
         );
 
         // Retrieve the last project name from the Composer contract
-        string memory lastProjectNameSentToComposer = composer.data();
-        console.log(
-            "Last project name sent to Composer:",
-            lastProjectNameSentToComposer
-        );
+        address userAddress = composer.USER();
+        uint256 projectId = composer.PROJECTID();
+        console.log("last msg.sender in composer contract:", userAddress);
+        console.log("last id in composer contract:", projectId);
 
         // Retrieve the last project name from the Adapter contract
-        string memory lastProjectNameSentToAdapterContract = adapter.data();
-        console.log(
-            "Last project name sent to Adapter Contract:",
-            lastProjectNameSentToAdapterContract
-        );
+        address userAddress2 = adapter.USER();
+        uint256 projectId2 = adapter.PROJECTID();
+
+        console.log("last msg.sender in adapter:", userAddress2);
+        console.log("last id in adapter contract:", projectId2);
 
         vm.stopBroadcast();
     }

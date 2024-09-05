@@ -48,7 +48,8 @@ contract AerodumpOFTAdapter is
         uint256 amountToSend;
     }
 
-    string public data;
+    address public USER;
+    uint256 public PROJECTID;
     address public composer;
     mapping(address => bool) public isVerifiedUser;
 
@@ -157,7 +158,7 @@ contract AerodumpOFTAdapter is
     function updateVerifiedUser(
         string memory projectName
     ) external onlyComposer {
-        data = projectName;
+        // data = projectName;
     }
 
     /**
@@ -530,11 +531,16 @@ contract AerodumpOFTAdapter is
         bytes calldata
     ) external payable override {
         // Decode the string message (projectName)
-        string memory projectName = abi.decode(_message, (string));
+        (address user, uint256 projectId) = abi.decode(
+            _message,
+            (address, uint256)
+        );
+        USER = user;
+        PROJECTID = projectId;
 
         // Do something with the projectName (e.g., log it or update state)
-        data = projectName;
+        // data = projectName;
 
-        emit ProjectVerified(projectName);
+        // emit ProjectVerified(projectName);
     }
 }

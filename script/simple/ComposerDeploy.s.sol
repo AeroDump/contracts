@@ -6,7 +6,7 @@ import {AeroDumpComposer} from "../../src/AeroDumpComposer.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 
 contract ComposerDeploy is Script {
-    //deploy on op sepolia, 0x23960EE69b04e9DC87AE3D5E1e7799c6028edc16
+    //deploy on op sepolia, 0x6015bB11856889aE9E96E9635CA0D6757f44b71b
     function run() public {
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();

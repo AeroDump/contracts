@@ -148,7 +148,7 @@ contract AeroDumpAttestations is Ownable, OApp {
         s_projectIds[msg.sender] = projectId;
 
         // Prepare params for LayerZero send method
-        bytes memory payload = abi.encode(projectName); // Send projectName as message
+        bytes memory payload = abi.encode(msg.sender, projectId); // Send projectName as message
         bytes memory options = OptionsBuilder
             .newOptions()
             .addExecutorLzReceiveOption(55000, 0)

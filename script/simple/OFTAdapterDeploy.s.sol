@@ -9,7 +9,7 @@ import {HelperConfig} from "../HelperConfig.s.sol";
 contract OFTAdapterDeploy is Script {
     HelperConfig config = new HelperConfig();
 
-    //deploy on op sepolia , 0xB8CEc1a1f2986E36284bC42Aa862b812150dD754
+    //deploy on op sepolia , 0xe473EffDC30EdBFb68990A517A21307d287CcbB3
     function run() public {
         vm.startBroadcast();
         console.log("script running");

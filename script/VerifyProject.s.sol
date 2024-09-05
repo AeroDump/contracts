@@ -21,7 +21,7 @@ contract SendScript is Script {
         //     0x09dc432D56616A204B79ABAd351D84aD78153d5D
         // ).quote(uint32(40245), "hi_there", options, false);
 
-        AeroDumpAttestations(0x66Cb88c2C4e68Ed626855dA33a2969bD4f4E5540)
+        AeroDumpAttestations(0x5a70Ce8E9dd57B1FbE6b77AE40d3D81206229fA7)
             .verifyProject{value: 0.008 ether}(
             "StringWorks",
             "testy",

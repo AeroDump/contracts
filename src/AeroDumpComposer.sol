@@ -16,7 +16,8 @@ contract AeroDumpComposer is OApp {
     address public lastVerifiedUser;
     address[] public adapters;
 
-    string public data;
+    address public USER;
+    uint256 public PROJECTID;
 
     event ProjectVerified(string projectName);
 
@@ -58,8 +59,12 @@ contract AeroDumpComposer is OApp {
         bytes calldata // Any extra data or options to trigger on receipt.
     ) internal override {
         // Decode the string message and composed address
-        string memory projectName = abi.decode(payload, (string));
-        data = projectName;
+        (address user, uint256 projectId) = abi.decode(
+            payload,
+            (address, uint256)
+        );
+        USER = user;
+        PROJECTID = projectId;
 
         // bytes memory newPayload = abi.encode(projectName);
 
@@ -68,7 +73,5 @@ contract AeroDumpComposer is OApp {
             endpoint.sendCompose(adapters[i], _guid, 0, payload);
             // IAerodumpOFTAdapter(adapters[i]).updateVerifiedUser(projectName);
         }
-
-        emit ProjectVerified(projectName);
     }
 }
