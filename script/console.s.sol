@@ -13,10 +13,10 @@ contract Console is Script {
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
         AeroDumpComposer composer = AeroDumpComposer(
-            0xBA9E54606a67147Ad0Fb9DeFbaE2d461ddE8ACc5
+            0x23960EE69b04e9DC87AE3D5E1e7799c6028edc16
         );
         AerodumpOFTAdapter adapter = AerodumpOFTAdapter(
-            0x4390bbad9F2cd8F4E28C8B48435c24023823d442
+            0xB8CEc1a1f2986E36284bC42Aa862b812150dD754
         );
 
         // Retrieve the last project name from the Composer contract

@@ -64,10 +64,10 @@ contract AeroDumpComposer is OApp {
         // bytes memory newPayload = abi.encode(projectName);
 
         // Loop through all adapters and send the composed message
-        // for (uint256 i = 0; i < adapters.length; i++) {
-        //     // endpoint.sendCompose(adapters[i], _guid, uint16(i), newPayload);
-        //     IAerodumpOFTAdapter(adapters[i]).updateVerifiedUser(projectName);
-        // }
+        for (uint256 i = 0; i < adapters.length; i++) {
+            endpoint.sendCompose(adapters[i], _guid, 0, payload);
+            // IAerodumpOFTAdapter(adapters[i]).updateVerifiedUser(projectName);
+        }
 
         emit ProjectVerified(projectName);
     }
