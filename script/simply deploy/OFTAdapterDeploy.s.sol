@@ -9,12 +9,18 @@ import { HelperConfig } from "../HelperConfig.s.sol";
 contract OFTAdapterDeploy is Script {
     HelperConfig config = new HelperConfig();
 
-    //deploy on base sepolia , 0x89AD215eF488E254B804162c83d6BC7DE0e1519c
+    //deploy on op sepolia , 0xc1291707f5Af0aBEaC2bf483053330BF1798189d
     function run() public {
         vm.startBroadcast();
         console.log("script running");
         AerodumpOFTAdapter adapter = new AerodumpOFTAdapter(
+<<<<<<< HEAD
             config.getBaseSepoliaConfig().tokenAddress, config.getBaseSepoliaConfig().layerZeroEndpoint, msg.sender
+=======
+            config.getOpSepoliaConfig().tokenAddress,
+            config.getOpSepoliaConfig().layerZeroEndpoint,
+            msg.sender
+>>>>>>> df66cca134d4030db9ae253db97fd4bf757e2aa3
         );
         console.log("adapter", address(adapter));
         vm.stopBroadcast();

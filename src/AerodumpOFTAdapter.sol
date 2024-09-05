@@ -1,12 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+<<<<<<< HEAD
 import { OFTAdapter } from "@layerzerolabs/oft-evm/contracts/OFTAdapter.sol";
 import { AutomationCompatibleInterface } from
     "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { AeroDumpAttestations } from "./signprotocol/AeroDumpAttestations.sol";
 import { OApp, MessagingFee, Origin } from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
+=======
+import {OFTAdapter} from "@layerzerolabs/oft-evm/contracts/OFTAdapter.sol";
+import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {AeroDumpAttestations} from "./signprotocol/AeroDumpAttestations.sol";
+import {OApp, MessagingFee, Origin} from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
+import {ILayerZeroComposer} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroComposer.sol";
+>>>>>>> df66cca134d4030db9ae253db97fd4bf757e2aa3
 
 /**
  * @title AerodumpOFTAdapter
@@ -18,7 +27,11 @@ import { OApp, MessagingFee, Origin } from "@layerzerolabs/oapp-evm/contracts/oa
  * @dev Using an existing ERC20 token, this contract can be deployed on different addresses for different tokens.
  * @dev Consider we give in USDC address in constructor, airdrop will be done using *only* USDC.
  */
-contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
+contract AerodumpOFTAdapter is
+    OFTAdapter,
+    AutomationCompatibleInterface,
+    ILayerZeroComposer
+{
     /**
      * @dev Struct representing an airdrop project.
      */
@@ -43,6 +56,10 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         uint256 amountToSend;
     }
 
+<<<<<<< HEAD
+=======
+    string public data;
+>>>>>>> df66cca134d4030db9ae253db97fd4bf757e2aa3
     /**
      * @dev Emitted when tokens are locked by a caller into this contract.
      */
@@ -436,6 +453,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         return equalDistributionQueue[equalDistributionQueueFrontIndex];
     }
 
+<<<<<<< HEAD
     function _lzReceive(
         Origin calldata _origin,
         bytes32 _guid,
@@ -456,5 +474,18 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface {
         } else {
             revert("Unknown message type");
         }
+=======
+    function lzCompose(
+        address _oApp,
+        bytes32 /*_guid*/,
+        bytes calldata _message,
+        address,
+        bytes calldata
+    ) external payable override {
+        // Perform checks to make sure composed message comes from correct OApp.
+
+        // Decode the payload to get the message
+        data = abi.decode(_message, (string));
+>>>>>>> df66cca134d4030db9ae253db97fd4bf757e2aa3
     }
 }

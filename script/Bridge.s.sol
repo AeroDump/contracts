@@ -8,15 +8,18 @@ import {HelperConfig} from "../script/HelperConfig.s.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract BridgeScript is Script {
-    //running on eth sepolia
+    //running on base sepolia
     function run() public {
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
-        AeroDumpAttestations(0x09dc432D56616A204B79ABAd351D84aD78153d5D)
+        //calls attestatios's set peer both ways to composer
+        AeroDumpAttestations(0x2AEf4AB12A5b8dBD420AbC44CE5C3ac562352526)
             .setPeer(
-                uint32(40245),
-                addressToBytes32(0x89AD215eF488E254B804162c83d6BC7DE0e1519c)
+                uint32(config.getOpSepoliaConfig().chainEid),
+                addressToBytes32(0x141eA5d5536d81123B4F34Fc3F3aEbd9603aa1AB)
             );
+        AeroDumpAttestations(0x2AEf4AB12A5b8dBD420AbC44CE5C3ac562352526)
+            .setComposerEid(uint32(config.getOpSepoliaConfig().chainEid));
         vm.stopBroadcast();
     }
 
