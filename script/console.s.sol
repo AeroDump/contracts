@@ -2,36 +2,27 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
-<<<<<<< HEAD
-import { AerodumpOFTAdapter } from "../src/AerodumpOFTAdapter.sol";
-import { AeroDumpAttestations } from "../src/signprotocol/AeroDumpAttestations.sol";
+import { AeroDumpComposer } from "../../src/AeroDumpComposer.sol";
+import { AerodumpOFTAdapter } from "../../src/AerodumpOFTAdapter.sol";
 import { HelperConfig } from "../script/HelperConfig.s.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-=======
-import {AeroDumpComposer} from "../../src/AreoDumpComposer.sol";
-import {AerodumpOFTAdapter} from "../../src/AeroDumpOFTAdapter.sol";
-import {HelperConfig} from "../script/HelperConfig.s.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
->>>>>>> df66cca134d4030db9ae253db97fd4bf757e2aa3
 
 contract Console is Script {
     //running on op sepolia
     function run() public {
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
-<<<<<<< HEAD
-        // console.log(
-        //     AerodumpOFTAdapter(0x89AD215eF488E254B804162c83d6BC7DE0e1519c)
-=======
-        console.log(
-            AeroDumpComposer(0x141eA5d5536d81123B4F34Fc3F3aEbd9603aa1AB).data()
-        );
+        AeroDumpComposer composer = AeroDumpComposer(0x6abA63870bF8Bdf3888b5f794DDf7dE2AeDa5060);
+        AerodumpOFTAdapter adapter = AerodumpOFTAdapter(0xA621DaF0941E7428Ce7a739a536B6E3954a1d01C);
 
-        // console.log(
-        //     AerodumpOFTAdapter(0x385928e1e9648EF02ec4a44670e9B0D5AFD8e499)
->>>>>>> df66cca134d4030db9ae253db97fd4bf757e2aa3
-        //         .data()
-        // );
+        // Retrieve the last project name from the Composer contract
+        string memory lastProjectNameSentToComposer = composer.data();
+        console.log("Last project name sent to Composer:", lastProjectNameSentToComposer);
+
+        // Retrieve the last project name from the Adapter contract
+        string memory lastProjectNameSentToAdapterContract = adapter.data();
+        console.log("Last project name sent to Adapter Contract:", lastProjectNameSentToAdapterContract);
+
         vm.stopBroadcast();
     }
 

@@ -1,15 +1,9 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-<<<<<<< HEAD
 import { Script } from "forge-std/Script.sol";
 import { console } from "forge-std/Test.sol";
 import { MockV3Aggregator } from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
-=======
-import {Script} from "forge-std/Script.sol";
-import {console} from "forge-std/Test.sol";
-import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
->>>>>>> df66cca134d4030db9ae253db97fd4bf757e2aa3
 
 contract HelperConfig is Script {
     struct NetworkConfig {
@@ -51,23 +45,18 @@ contract HelperConfig is Script {
             _kycVerificationSchemaId: KYC_VERIFICATION_SCHEMA_ID,
             _tokenDepositSchemaId: TOKEN_DEPOSIT_SCHEMA_ID,
             _distributionCertificateSchemaId: DISTRIBUTION_CERTIFICATE_SCHEMA_ID,
-            _initialOwner: 0xfe63Ba8189215E5C975e73643b96066B6aD41A45,
-<<<<<<< HEAD
-            _ispAddress: 0x4e4af2a21ebf62850fD99Eb6253E1eFBb56098cD //0x878c92FD89d8E0B93Dc0a3c907A2adc7577e39c5 Sepolia
-                // testnet address0x6EDCE65403992e310A62460808c4b910D972f10f
-         });
-=======
-            _ispAddress: 0x4e4af2a21ebf62850fD99Eb6253E1eFBb56098cD, //0x878c92FD89d8E0B93Dc0a3c907A2adc7577e39c5 Sepolia
+            _initialOwner: msg.sender,
+            _ispAddress: 0x4e4af2a21ebf62850fD99Eb6253E1eFBb56098cD, //0x878c92FD89d8E0B93Dc0a3c907A2adc7577e39c5
+                // Sepolia
             // testnet address0x6EDCE65403992e310A62460808c4b910D972f10f
-            chainEid: 40245
+            chainEid: 40_245
         });
->>>>>>> df66cca134d4030db9ae253db97fd4bf757e2aa3
         return baseSepoliaConfig;
     }
 
     function getEthSepoliaConfig() public view returns (NetworkConfig memory) {
         NetworkConfig memory ethSepoliaConfig = NetworkConfig({
-            chainId: 11155111,
+            chainId: 11_155_111,
             tokenAddress: 0xf08A50178dfcDe18524640EA6618a1f965821715,
             ZROTokenAddress: 0x6985884C4392D348587B19cb9eAAf157F13271cd,
             layerZeroEndpoint: 0x6EDCE65403992e310A62460808c4b910D972f10f,
@@ -75,17 +64,18 @@ contract HelperConfig is Script {
             _kycVerificationSchemaId: KYC_VERIFICATION_SCHEMA_ID,
             _tokenDepositSchemaId: TOKEN_DEPOSIT_SCHEMA_ID,
             _distributionCertificateSchemaId: DISTRIBUTION_CERTIFICATE_SCHEMA_ID,
-            _initialOwner: 0xfe63Ba8189215E5C975e73643b96066B6aD41A45,
-            _ispAddress: 0x4e4af2a21ebf62850fD99Eb6253E1eFBb56098cD, //0x878c92FD89d8E0B93Dc0a3c907A2adc7577e39c5 Sepolia
+            _initialOwner: msg.sender,
+            _ispAddress: 0x4e4af2a21ebf62850fD99Eb6253E1eFBb56098cD, //0x878c92FD89d8E0B93Dc0a3c907A2adc7577e39c5
+                // Sepolia
             // testnet address0x6EDCE65403992e310A62460808c4b910D972f10f
-            chainEid: 40161
+            chainEid: 40_161
         });
         return ethSepoliaConfig;
     }
 
     function getOpSepoliaConfig() public view returns (NetworkConfig memory) {
         NetworkConfig memory opSepoliaConfig = NetworkConfig({
-            chainId: 11155420,
+            chainId: 11_155_420,
             tokenAddress: 0x5fd84259d66Cd46123540766Be93DFE6D43130D7,
             ZROTokenAddress: 0x6985884C4392D348587B19cb9eAAf157F13271cd,
             layerZeroEndpoint: 0x6EDCE65403992e310A62460808c4b910D972f10f,
@@ -93,12 +83,32 @@ contract HelperConfig is Script {
             _kycVerificationSchemaId: KYC_VERIFICATION_SCHEMA_ID,
             _tokenDepositSchemaId: TOKEN_DEPOSIT_SCHEMA_ID,
             _distributionCertificateSchemaId: DISTRIBUTION_CERTIFICATE_SCHEMA_ID,
-            _initialOwner: 0xfe63Ba8189215E5C975e73643b96066B6aD41A45,
-            _ispAddress: 0x4e4af2a21ebf62850fD99Eb6253E1eFBb56098cD, //0x878c92FD89d8E0B93Dc0a3c907A2adc7577e39c5 Sepolia
+            _initialOwner: msg.sender,
+            _ispAddress: 0x4e4af2a21ebf62850fD99Eb6253E1eFBb56098cD, //0x878c92FD89d8E0B93Dc0a3c907A2adc7577e39c5
+                // Sepolia
             // testnet address0x6EDCE65403992e310A62460808c4b910D972f10f
-            chainEid: 40232
+            chainEid: 40_232
         });
         return opSepoliaConfig;
+    }
+
+    function getArbSepoliaConfig() public view returns (NetworkConfig memory) {
+        NetworkConfig memory arbSepoliaConfig = NetworkConfig({
+            chainId: 421_614,
+            tokenAddress: 0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d,
+            ZROTokenAddress: 0x6985884C4392D348587B19cb9eAAf157F13271cd,
+            layerZeroEndpoint: 0x6EDCE65403992e310A62460808c4b910D972f10f,
+            _verifyProjectCertificateSchemaId: VERIFY_PROJECT_CERTIFICATE_SCHEMA_ID,
+            _kycVerificationSchemaId: KYC_VERIFICATION_SCHEMA_ID,
+            _tokenDepositSchemaId: TOKEN_DEPOSIT_SCHEMA_ID,
+            _distributionCertificateSchemaId: DISTRIBUTION_CERTIFICATE_SCHEMA_ID,
+            _initialOwner: msg.sender,
+            _ispAddress: 0x4e4af2a21ebf62850fD99Eb6253E1eFBb56098cD, //0x878c92FD89d8E0B93Dc0a3c907A2adc7577e39c5
+                // Sepolia
+            // testnet address0x6EDCE65403992e310A62460808c4b910D972f10f
+            chainEid: 40_231
+        });
+        return arbSepoliaConfig;
     }
 
     function getAnvilConfig() public pure returns (NetworkConfig memory) {

@@ -1,125 +1,74 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.20;
 
-import { OApp, Origin } from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
-import {
-    ILayerZeroEndpointV2,
-    MessagingFee,
-    MessagingReceipt
-} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
-import { ILayerZeroComposer } from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroComposer.sol";
-import { OFTComposeMsgCodec } from "@layerzerolabs/oft-evm/contracts/libs/OFTComposeMsgCodec.sol";
+import { OApp, MessagingFee, Origin } from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { AeroDumpAttestations } from "./signprotocol/AeroDumpAttestations.sol";
+import { IAerodumpOFTAdapter } from "./interfaces/IAerodumpOFTAdapter.sol";
 
-contract AeroDumpComposer is Ownable, ILayerZeroComposer {
-    address public immutable endpoint;
-    address public immutable attestationsContract;
-    address[] public oftAdapters;
+/**
+ * @title AeroDumpComposer.
+ * @author AeroDump.
+ * @notice Routing contract integrated with layerzero omichain messaging.
+ * @dev This contract receives project verified address from AeroDumpAttestations.
+ * @dev Deployed on a different chain than Attestations(Hedera).
+ */
+contract AeroDumpComposer is OApp {
+    address public lastVerifiedUser;
+    address[] public adapters;
 
-    event MessageComposedAndSent(uint32 indexed destinationEid, address indexed oftAdapter, bytes payload);
-    event LockTokensRequested(uint256 projectId, address tokenAddress, uint256 amount);
+    string public data;
 
-    constructor(address _endpoint, address _attestationsContract, address InitialOwner) Ownable(InitialOwner) {
-        endpoint = _endpoint;
-        attestationsContract = _attestationsContract;
-    }
+    event ProjectVerified(string projectName);
 
-    function addOFTAdapter(address oftAdapter) external {
-        // Function to add new OFTAdapter addresses
-        oftAdapters.push(oftAdapter);
-    }
+    constructor(address initialOwner, address _endpoint) OApp(_endpoint, initialOwner) Ownable(initialOwner) { }
 
-    function lzCompose(
-        address _oApp,
-        bytes32 _guid,
-        bytes calldata _message,
-        address, // executor
-        bytes calldata // options
+    function send(
+        uint32 _dstEid,
+        string memory _message,
+        address _composedAddress,
+        bytes calldata _options
     )
         external
         payable
-        override
     {
-        require(_oApp == attestationsContract, "!attestationsContract");
-        require(msg.sender == endpoint, "!endpoint");
-
-        // Decode the message type and data
-        (uint8 messageType, bytes memory data) = abi.decode(_message, (uint8, bytes));
-
-        // Loop through all OFTAdapters and send the composed message
-        for (uint256 i = 0; i < oftAdapters.length; i++) {
-            // Compose a message for each OFTAdapter
-            _sendToOFTAdapter(oftAdapters[i], _guid, abi.encode(messageType, data));
-        }
-    }
-
-    function forwardLockTokensRequest(uint256 projectId, address tokenAddress, uint256 amount) external onlyOwner {
-        // Encode the message with the required parameters
-        bytes memory encodedMessage = abi.encode(projectId, tokenAddress, amount);
-
-        // Define the MessagingFee (for simplicity, let's assume zero fees here, but you should calculate the actual
-        // fees)
-        MessagingFee memory fee = MessagingFee({
-            nativeFee: 0, // Set the appropriate native fee here
-            lzTokenFee: 0 // Set the appropriate lzToken fee here
-         });
-
-        // Send the composed message to the Attestations contract
+        // Encodes the message before invoking _lzSend.
+        bytes memory _payload = abi.encode(_message, _composedAddress);
         _lzSend(
-            attestationsContract, // Destination chain ID or address of the Attestations contract
-            encodedMessage, // Encoded message containing the parameters for recordLockTokens
-            "", // Options
-            fee, // Fee
-            msg.sender // Refund address
+            _dstEid,
+            _payload,
+            _options,
+            // Fee in native gas and ZRO token.
+            MessagingFee(msg.value, 0),
+            // Refund address in case of failed source message.
+            payable(msg.sender)
         );
     }
 
-    function _lzSend(
-        address _to,
-        bytes memory _message,
-        string memory _options,
-        MessagingFee memory _fee,
-        address _refundAddress
+    function setAdapterAddresses(address[] calldata _adapters) external onlyOwner {
+        adapters = _adapters;
+    }
+
+    function _lzReceive(
+        Origin calldata _origin,
+        bytes32 _guid,
+        bytes calldata payload,
+        address, // Executor address as specified by the OApp.
+        bytes calldata // Any extra data or options to trigger on receipt.
     )
         internal
+        override
     {
-        // Implement the LayerZero send function
-        // Ensure this implementation correctly interacts with LayerZero's endpoint
-        (bool success,) = endpoint.call{ value: _fee.nativeFee }(
-            abi.encodeWithSignature(
-                "send(address,bytes32,bytes,bytes,bytes)",
-                _to,
-                keccak256(abi.encodePacked(_message)),
-                _message,
-                _options,
-                _refundAddress
-            )
-        );
-        require(success, "Failed to send message");
-    }
+        // Decode the string message and composed address
+        string memory projectName = abi.decode(payload, (string));
+        data = projectName;
 
-    function _sendToOFTAdapter(address oftAdapter, bytes32 _guid, bytes memory _message) internal {
-        // Sending a composed message to each OFTAdapter
-        (bool success,) = endpoint.call{ value: msg.value }(
-            abi.encodeWithSignature("sendCompose(address,bytes32,uint16,bytes)", oftAdapter, _guid, 0, _message)
-        );
-        require(success, "Failed to send composed message to OFTAdapter");
-    }
+        bytes memory newPayload = abi.encode(projectName);
 
-    function _lzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal {
-        // Decode the payload to get the message type
-        (uint8 messageType, bytes memory data) = abi.decode(_payload, (uint8, bytes));
-
-        // Handle the message based on its type
-        if (messageType == 2) {
-            // Decode the data for messageType 2
-            (uint256 projectId, address tokenAddress, uint256 amount) = abi.decode(data, (uint256, address, uint256));
-
-            // Call the recordLockTokens function in the AeroDumpAttestations contract
-            AeroDumpAttestations(attestationsContract).recordLockTokens(projectId, tokenAddress, amount);
-        } else {
-            revert("Unknown message type");
+        // Loop through all adapters and send the composed message
+        for (uint256 i = 0; i < adapters.length; i++) {
+            endpoint.sendCompose(adapters[i], _guid, uint16(i), newPayload);
         }
+
+        emit ProjectVerified(projectName);
     }
 }

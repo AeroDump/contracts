@@ -54,7 +54,6 @@ contract AeroDumpAttestations is Ownable, OApp {
      * @dev Constructor initializes the Sign Protocol instance.
      * @param initialOwner The address of the contract owner.
      * @param _spInstance The address of the Sign Protocol instance.
-     * @param _endpoint The address of the LayerZero endpoint.
      */
     constructor(
         address initialOwner,
@@ -88,7 +87,6 @@ contract AeroDumpAttestations is Ownable, OApp {
         kycVerificationSchemaId = _kycVerificationSchemaId;
         tokenDepositSchemaId = _tokenDepositSchemaId;
         distributionCertificateSchemaId = _distributionCertificateSchemaId;
-        airdropExecutionSchemaId = _airdropExecutionSchemaId;
     }
 
     /**
@@ -98,36 +96,6 @@ contract AeroDumpAttestations is Ownable, OApp {
     function setComposerEid(uint32 _dstEid) external onlyOwner {
         composerEid = _dstEid;
     }
-
-    // /**
-    //  * //  * @notice Registers a new project with the system.
-    //  * //  * @dev Creates an attestation for the project registration.
-    //  * //  * @param projectName The name of the project being registered.
-    //  * //
-    //  * @notice Registers a new project with the system.
-    //  * @dev Creates an attestation for the project registration.
-    //  * @param projectName The name of the project being registered.
-    //  */
-
-    // function registerProject(string memory projectName) external {
-    //     bytes[] memory recipients = new bytes[](1);
-    //     recipients[0] = abi.encode(msg.sender);
-
-    //     Attestation memory a = Attestation({
-    //         schemaId: projectSchemaId,
-    //         linkedAttestationId: 0,
-    //         attestTimestamp: 0,
-    //         revokeTimestamp: 0,
-    //         attester: address(this),
-    //         validUntil: 0,
-    //         dataLocation: DataLocation.ONCHAIN,
-    //         revoked: false,
-    //         recipients: recipients,
-    //         data: abi.encode(projectName, msg.sender, false)
-    //     });
-
-    //     spInstance.attest(a, "", "", "");
-    // }
 
     /**
      * @notice Verifies a project by recording detailed information.
@@ -183,19 +151,18 @@ contract AeroDumpAttestations is Ownable, OApp {
         s_isVerified[msg.sender] = true;
         s_projectIds[msg.sender] = projectId;
 
-        //Prepare params for layerzero send method
-        bytes memory _payload = abi.encode(msg.sender);
-        bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(70_000, 0);
-        //Send encoded address to AeroDumpComposer
+        // Prepare params for LayerZero send method
+        bytes memory payload = abi.encode(projectName); // Send projectName as message
+        bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(90_000, 0);
+
         _lzSend(
             composerEid,
-            _payload,
+            payload, // Send encoded projectName
             options,
-            // Fee in native gas and ZRO token.
             MessagingFee(msg.value, 0),
-            // Refund address in case of failed source message.
             payable(msg.sender)
         );
+
         return projectId;
     }
 
@@ -308,13 +275,12 @@ contract AeroDumpAttestations is Ownable, OApp {
      * @param _origin A struct containing information about where the packet came from.
      * @param _guid A global unique identifier for tracking the packet.
      * @param payload Encoded message.
-     * @param _executor Executor address as specified by the OApp.
      */
     function _lzReceive(
         Origin calldata _origin,
         bytes32 _guid,
         bytes calldata payload,
-        address _executor,
+        address, // Executor address as specified by the OApp.
         bytes calldata // Any extra data or options to trigger on receipt.
     )
         internal
@@ -324,31 +290,6 @@ contract AeroDumpAttestations is Ownable, OApp {
         // In this case, type is string, but depends on your encoding!
         abi.decode(payload, (string));
     }
-
-    /**
-     * @notice Signs a refund agreement for a project.
-     * @dev Creates or updates an attestation to indicate that a refund agreement has been signed.
-     * @param projectName The name of the project for which the refund agreement is being signed.
-     */
-    // function signRefundAgreement(string memory projectName) external {
-    //     bytes[] memory recipients = new bytes[](1);
-    //     recipients[0] = abi.encode(msg.sender);
-
-    // Attestation memory a = Attestation({
-    //     schemaId: projectSchemaId,
-    //     linkedAttestationId: 0,
-    //     attestTimestamp: 0,
-    //     revokeTimestamp: 0,
-    //     attester: address(this),
-    //     validUntil: 0,
-    //     dataLocation: DataLocation.ONCHAIN,
-    //     revoked: false,
-    //     recipients: recipients,
-    //     data: abi.encode(projectName)
-    // });
-
-    //     spInstance.attest(a, "", "", "");
-    // }
 
     /**
      * @notice Checks the verification status of a user's project.
@@ -388,4 +329,6 @@ contract AeroDumpAttestations is Ownable, OApp {
     function getIsTokensLoked() external view returns (bool) {
         return s_lockedTokens[msg.sender];
     }
+
+    function getIsCsvUploaded() external view returns (bool) { }
 }

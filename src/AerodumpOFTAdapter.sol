@@ -1,21 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-<<<<<<< HEAD
 import { OFTAdapter } from "@layerzerolabs/oft-evm/contracts/OFTAdapter.sol";
 import { AutomationCompatibleInterface } from
     "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { AeroDumpAttestations } from "./signprotocol/AeroDumpAttestations.sol";
 import { OApp, MessagingFee, Origin } from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
-=======
-import {OFTAdapter} from "@layerzerolabs/oft-evm/contracts/OFTAdapter.sol";
-import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {AeroDumpAttestations} from "./signprotocol/AeroDumpAttestations.sol";
-import {OApp, MessagingFee, Origin} from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
-import {ILayerZeroComposer} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroComposer.sol";
->>>>>>> df66cca134d4030db9ae253db97fd4bf757e2aa3
+import { ILayerZeroComposer } from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroComposer.sol";
+import { IAerodumpOFTAdapter } from "./interfaces/IAerodumpOFTAdapter.sol";
 
 /**
  * @title AerodumpOFTAdapter
@@ -27,11 +19,7 @@ import {ILayerZeroComposer} from "@layerzerolabs/lz-evm-protocol-v2/contracts/in
  * @dev Using an existing ERC20 token, this contract can be deployed on different addresses for different tokens.
  * @dev Consider we give in USDC address in constructor, airdrop will be done using *only* USDC.
  */
-contract AerodumpOFTAdapter is
-    OFTAdapter,
-    AutomationCompatibleInterface,
-    ILayerZeroComposer
-{
+contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface, ILayerZeroComposer, IAerodumpOFTAdapter {
     /**
      * @dev Struct representing an airdrop project.
      */
@@ -56,10 +44,11 @@ contract AerodumpOFTAdapter is
         uint256 amountToSend;
     }
 
-<<<<<<< HEAD
-=======
     string public data;
->>>>>>> df66cca134d4030db9ae253db97fd4bf757e2aa3
+    address public composer;
+    mapping(address => bool) public isVerifiedUser;
+
+    event AerodumpOFTAdapter__UserVerified(address user);
     /**
      * @dev Emitted when tokens are locked by a caller into this contract.
      */
@@ -70,8 +59,7 @@ contract AerodumpOFTAdapter is
      */
     event AerodumpOFTAdapter__TokensCredited(address recipient, uint256 amount, uint256 dstChainId);
 
-    // Event to notify when an address is verified
-    event AddressVerified(address indexed account);
+    event ProjectVerified(string projectName);
 
     /**
      * @dev Global variable for token address used in this deployment.
@@ -107,9 +95,6 @@ contract AerodumpOFTAdapter is
      */
     mapping(uint256 => address) public projectIdToOwner;
 
-    // Mapping to track verified addresses
-    mapping(address => bool) public verifiedAddresses;
-
     /**
      * @dev Modifier to check if the user has a project.
      */
@@ -121,19 +106,15 @@ contract AerodumpOFTAdapter is
         _;
     }
 
-    /**
-     * @dev Modifier to check if the project is verified
-     */
-    modifier projectShouldBeVerified(address projectAddress) {
-        require(verifiedAddresses[projectAddress], "Project is not verified");
+    modifier onlyComposer() {
+        require(msg.sender == composer, "Only composer can call this function");
         _;
     }
 
-    // @dev Modifier to check if the project owner is KYC verified
-    // modifier projectOwnerShouldBeKYCVerified() {
-    //     require(attestationContract.isVerifiedWithKYC(msg.sender), "Project owner is not KYC verified");
-    //     _;
-    // }
+    modifier projectShouldBeVerified() {
+        require(isVerifiedUser[msg.sender], "Project owner must be verified!");
+        _;
+    }
 
     /**
      * @param _token Address of the existing ERC20 token that will be used for airdrops.
@@ -156,6 +137,14 @@ contract AerodumpOFTAdapter is
         equalDistributionQueueFrontIndex = 0;
     }
 
+    function setComposer(address _composer) external onlyOwner {
+        composer = _composer;
+    }
+
+    function updateVerifiedUser(address user) external onlyComposer {
+        isVerifiedUser[user] = true;
+    }
+
     /**
      * @notice This function locks in funds from the caller, to this contract.
      * @notice Only verified projects and verified project owners with sign KYC are allowed to call this function.
@@ -176,9 +165,8 @@ contract AerodumpOFTAdapter is
         uint32 _dstChainId
     )
         external
-        payable
         //projectOwnerShouldBeKYCVerified
-        projectShouldBeVerified(msg.sender)
+        projectShouldBeVerified
         returns (uint256 amountSent, uint256 amountRecievedByRemote)
     {
         //LayerZero function _debit that handles the actual debit using vault standards.
@@ -201,20 +189,6 @@ contract AerodumpOFTAdapter is
             projectIdToOwner[_projectId] = msg.sender;
         }
 
-        // Prepare data to send to the Composer
-        bytes memory messageData = abi.encode(2, _projectId, TOKEN_ADDRESS, _amount); // 2 represents the lock tokens
-            // type
-        bytes memory payload = abi.encode(2, messageData); // 2 represents the message type
-
-        // Send message to Composer via LayerZero
-        _lzSend(
-            _dstChainId, // Destination chain ID
-            payload, // Encoded payload
-            "", // Options
-            MessagingFee(msg.value, 0), // Fees
-            payable(msg.sender) // Refund address
-        );
-
         emit AerodumpOFTAdapter__TokensLocked(msg.sender, _projectId, _amount, _dstChainId);
         return (amountSent, amountRecievedByRemote);
     }
@@ -233,7 +207,7 @@ contract AerodumpOFTAdapter is
     )
         external
         shouldHaveAnActiveProject
-        projectShouldBeVerified(msg.sender)
+        projectShouldBeVerified
     //projectOwnerShouldBeKYCVerified
     {
         require(projects[projectOwnerToId[msg.sender]].amountLockedInContract > 0, "Lock some money first!");
@@ -257,7 +231,7 @@ contract AerodumpOFTAdapter is
     function queueAirdropWithUnequalCSVDistribution(Recipient[] memory _recipientsData)
         external
         shouldHaveAnActiveProject
-        projectShouldBeVerified(msg.sender)
+        projectShouldBeVerified
     //projectOwnerShouldBeKYCVerified
     {
         for (uint256 i = 0; i < _recipientsData.length; i++) {
@@ -400,7 +374,7 @@ contract AerodumpOFTAdapter is
         public
         view
         shouldHaveAnActiveProject
-        projectShouldBeVerified(msg.sender)
+        projectShouldBeVerified
         returns (project memory)
     {
         return projects[projectOwnerToId[_user]];
@@ -415,7 +389,7 @@ contract AerodumpOFTAdapter is
         public
         view
         shouldHaveAnActiveProject
-        projectShouldBeVerified(msg.sender)
+        projectShouldBeVerified
         returns (project memory)
     {
         return projects[_projectId];
@@ -425,7 +399,7 @@ contract AerodumpOFTAdapter is
         public
         view
         shouldHaveAnActiveProject
-        projectShouldBeVerified(msg.sender)
+        projectShouldBeVerified
         returns (uint256)
     {
         return projectOwnerToId[user];
@@ -435,7 +409,7 @@ contract AerodumpOFTAdapter is
         public
         view
         shouldHaveAnActiveProject
-        projectShouldBeVerified(msg.sender)
+        projectShouldBeVerified
         returns (address)
     {
         return projectIdToOwner[projectId];
@@ -453,39 +427,23 @@ contract AerodumpOFTAdapter is
         return equalDistributionQueue[equalDistributionQueueFrontIndex];
     }
 
-<<<<<<< HEAD
-    function _lzReceive(
-        Origin calldata _origin,
-        bytes32 _guid,
-        bytes calldata _payload,
-        address, // Executor address
-        bytes calldata // Any extra data or options
-    )
-        internal
-        override
-    {
-        (uint8 messageType, bytes memory data) = abi.decode(_payload, (uint8, bytes));
-
-        if (messageType == 1) {
-            // Assuming 1 is the type for verified addresses
-            address verifiedAddress = abi.decode(data, (address));
-            verifiedAddresses[verifiedAddress] = true;
-            emit AddressVerified(verifiedAddress);
-        } else {
-            revert("Unknown message type");
-        }
-=======
     function lzCompose(
         address _oApp,
-        bytes32 /*_guid*/,
+        bytes32, /*_guid*/
         bytes calldata _message,
         address,
         bytes calldata
-    ) external payable override {
-        // Perform checks to make sure composed message comes from correct OApp.
+    )
+        external
+        payable
+        override
+    {
+        // Decode the string message (projectName)
+        string memory projectName = abi.decode(_message, (string));
 
-        // Decode the payload to get the message
-        data = abi.decode(_message, (string));
->>>>>>> df66cca134d4030db9ae253db97fd4bf757e2aa3
+        // Do something with the projectName (e.g., log it or update state)
+        data = projectName;
+
+        emit ProjectVerified(projectName);
     }
 }

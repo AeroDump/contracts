@@ -22,9 +22,9 @@ contract OFTAdapterScript is Script {
 
         attestations.setSchemaIds(
             config.getBaseSepoliaConfig()._verifyProjectCertificateSchemaId,
-            config.getBaseSepoliaConfig()._kycVerificationSchemaId,
             config.getBaseSepoliaConfig()._tokenDepositSchemaId,
-            config.getBaseSepoliaConfig()._distributionCertificateSchemaId
+            3,
+            1
         );
         console.log("schema ids are set");
         AerodumpOFTAdapter adapter = new AerodumpOFTAdapter(

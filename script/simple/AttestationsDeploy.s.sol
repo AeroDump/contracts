@@ -6,22 +6,22 @@ import { AeroDumpAttestations } from "../../src/signprotocol/AeroDumpAttestation
 import { HelperConfig } from "../../script/HelperConfig.s.sol";
 
 contract AttestationsDeploy is Script {
-    //deploy on base sepolia, 0x2AEf4AB12A5b8dBD420AbC44CE5C3ac562352526
+    //deploy on base sepolia, 0x2D92992eA05d38A254B6C26ED9DC5933b5Fb8c5C
     function run() public {
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
         console.log("script running");
         AeroDumpAttestations attestationscontract = new AeroDumpAttestations(
             msg.sender,
-            config.getBaseSepoliaConfig()._ispAddress, //isp for sepolia eth
-            config.getBaseSepoliaConfig().layerZeroEndpoint //layerzero endpoint for eth sepolia
+            config.getBaseSepoliaConfig()._ispAddress, //isp for base sepolia
+            config.getBaseSepoliaConfig().layerZeroEndpoint //layerzero endpoint for base sepolia
         );
         console.log("Attestation Contract Address", address(attestationscontract));
         attestationscontract.setSchemaIds(
             config.getBaseSepoliaConfig()._verifyProjectCertificateSchemaId,
-            config.getBaseSepoliaConfig()._kycVerificationSchemaId,
             config.getBaseSepoliaConfig()._tokenDepositSchemaId,
-            config.getBaseSepoliaConfig()._distributionCertificateSchemaId
+            3,
+            1
         );
         console.log("schema ids are set");
 
