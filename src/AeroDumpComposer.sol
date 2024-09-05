@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { OApp, MessagingFee, Origin } from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { IAerodumpOFTAdapter } from "./interfaces/IAerodumpOFTAdapter.sol";
+import {OApp, MessagingFee, Origin} from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IAerodumpOFTAdapter} from "./interfaces/IAerodumpOFTAdapter.sol";
 
 /**
  * @title AeroDumpComposer.
@@ -20,17 +20,17 @@ contract AeroDumpComposer is OApp {
 
     event ProjectVerified(string projectName);
 
-    constructor(address initialOwner, address _endpoint) OApp(_endpoint, initialOwner) Ownable(initialOwner) { }
+    constructor(
+        address initialOwner,
+        address _endpoint
+    ) OApp(_endpoint, initialOwner) Ownable(initialOwner) {}
 
     function send(
         uint32 _dstEid,
         string memory _message,
         address _composedAddress,
         bytes calldata _options
-    )
-        external
-        payable
-    {
+    ) external payable {
         // Encodes the message before invoking _lzSend.
         bytes memory _payload = abi.encode(_message, _composedAddress);
         _lzSend(
@@ -44,7 +44,9 @@ contract AeroDumpComposer is OApp {
         );
     }
 
-    function setAdapterAddresses(address[] calldata _adapters) external onlyOwner {
+    function setAdapterAddresses(
+        address[] calldata _adapters
+    ) external onlyOwner {
         adapters = _adapters;
     }
 
@@ -54,20 +56,18 @@ contract AeroDumpComposer is OApp {
         bytes calldata payload,
         address, // Executor address as specified by the OApp.
         bytes calldata // Any extra data or options to trigger on receipt.
-    )
-        internal
-        override
-    {
+    ) internal override {
         // Decode the string message and composed address
         string memory projectName = abi.decode(payload, (string));
         data = projectName;
 
-        bytes memory newPayload = abi.encode(projectName);
+        // bytes memory newPayload = abi.encode(projectName);
 
         // Loop through all adapters and send the composed message
-        for (uint256 i = 0; i < adapters.length; i++) {
-            endpoint.sendCompose(adapters[i], _guid, uint16(i), newPayload);
-        }
+        // for (uint256 i = 0; i < adapters.length; i++) {
+        //     // endpoint.sendCompose(adapters[i], _guid, uint16(i), newPayload);
+        //     IAerodumpOFTAdapter(adapters[i]).updateVerifiedUser(projectName);
+        // }
 
         emit ProjectVerified(projectName);
     }

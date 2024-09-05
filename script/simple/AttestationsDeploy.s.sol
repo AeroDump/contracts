@@ -2,11 +2,11 @@
 pragma solidity 0.8.26;
 
 import "forge-std/Script.sol";
-import { AeroDumpAttestations } from "../../src/signprotocol/AeroDumpAttestations.sol";
-import { HelperConfig } from "../../script/HelperConfig.s.sol";
+import {AeroDumpAttestations} from "../../src/signprotocol/AeroDumpAttestations.sol";
+import {HelperConfig} from "../../script/HelperConfig.s.sol";
 
 contract AttestationsDeploy is Script {
-    //deploy on base sepolia, 0x2D92992eA05d38A254B6C26ED9DC5933b5Fb8c5C
+    //deploy on base sepolia, 0x675de6cA5A78b3C4acB19CD38E5a02a92da1B5f3
     function run() public {
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
@@ -16,7 +16,10 @@ contract AttestationsDeploy is Script {
             config.getBaseSepoliaConfig()._ispAddress, //isp for base sepolia
             config.getBaseSepoliaConfig().layerZeroEndpoint //layerzero endpoint for base sepolia
         );
-        console.log("Attestation Contract Address", address(attestationscontract));
+        console.log(
+            "Attestation Contract Address",
+            address(attestationscontract)
+        );
         attestationscontract.setSchemaIds(
             config.getBaseSepoliaConfig()._verifyProjectCertificateSchemaId,
             config.getBaseSepoliaConfig()._tokenDepositSchemaId,

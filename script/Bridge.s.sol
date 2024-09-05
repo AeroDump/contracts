@@ -2,10 +2,10 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
-import { AerodumpOFTAdapter } from "../src/AerodumpOFTAdapter.sol";
-import { AeroDumpAttestations } from "../src/signprotocol/AeroDumpAttestations.sol";
-import { HelperConfig } from "../script/HelperConfig.s.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {AerodumpOFTAdapter} from "../src/AerodumpOFTAdapter.sol";
+import {AeroDumpAttestations} from "../src/signprotocol/AeroDumpAttestations.sol";
+import {HelperConfig} from "../script/HelperConfig.s.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract BridgeScript is Script {
     //running on base sepolia
@@ -13,12 +13,13 @@ contract BridgeScript is Script {
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
         //calls attestatios's set peer both ways to composer
-        AeroDumpAttestations(0x2D92992eA05d38A254B6C26ED9DC5933b5Fb8c5C).setPeer(
-            uint32(config.getOpSepoliaConfig().chainEid), addressToBytes32(0x6abA63870bF8Bdf3888b5f794DDf7dE2AeDa5060)
-        );
-        AeroDumpAttestations(0x2D92992eA05d38A254B6C26ED9DC5933b5Fb8c5C).setComposerEid(
-            uint32(config.getOpSepoliaConfig().chainEid)
-        );
+        AeroDumpAttestations(0x675de6cA5A78b3C4acB19CD38E5a02a92da1B5f3)
+            .setPeer(
+                uint32(config.getOpSepoliaConfig().chainEid),
+                addressToBytes32(0xBA9E54606a67147Ad0Fb9DeFbaE2d461ddE8ACc5)
+            );
+        AeroDumpAttestations(0x675de6cA5A78b3C4acB19CD38E5a02a92da1B5f3)
+            .setComposerEid(uint32(config.getOpSepoliaConfig().chainEid));
         vm.stopBroadcast();
     }
 
