@@ -7,7 +7,7 @@ Built to support airdrops, marketing event rewards, and large-scale token transf
 ### [AeroDump Platform](https://aerodump.vercel.app/)
 
 # Process
-![image](https://github.com/user-attachments/assets/e0ff3dec-7b2e-4902-b3ba-45863128d3fc)
+![image](https://github.com/user-attachments/assets/45b95d8f-273e-4461-890b-49ce3c94ada1)
 
 ## Key Features of this Flow:
 **Easy Onboarding with Web3Auth:** 
