@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ISP} from "@signprotocol/signprotocol-evm/src/interfaces/ISP.sol";
-import {Attestation} from "@signprotocol/signprotocol-evm/src/models/Attestation.sol";
-import {DataLocation} from "@signprotocol/signprotocol-evm/src/models/DataLocation.sol";
-import {OApp, MessagingFee, Origin} from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
-import {OptionsBuilder} from "../library/OptionsBuilder.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { ISP } from "@signprotocol/signprotocol-evm/src/interfaces/ISP.sol";
+import { Attestation } from "@signprotocol/signprotocol-evm/src/models/Attestation.sol";
+import { DataLocation } from "@signprotocol/signprotocol-evm/src/models/DataLocation.sol";
+import { OApp, MessagingFee, Origin } from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
+import { OptionsBuilder } from "../library/OptionsBuilder.sol";
 
 /**
  * @title AeroDumpAttestations
@@ -15,12 +15,11 @@ import {OptionsBuilder} from "../library/OptionsBuilder.sol";
  * @dev It utilizes Sign Protocol's attestation system to store project-related data securely.
  */
 contract AeroDumpAttestations is Ownable, OApp {
-    event AeroDumpAttestations__TokensLocked(
-        address projectOwner,
-        uint256 amount
-    );
+    event AeroDumpAttestations__TokensLocked(address projectOwner, uint256 amount);
+
     using OptionsBuilder for bytes;
     // @dev The instance of the Sign Protocol interface.
+
     ISP public spInstance;
 
     uint256 public AMOUNT;
@@ -60,7 +59,10 @@ contract AeroDumpAttestations is Ownable, OApp {
         address initialOwner,
         address _spInstance,
         address _endpoint
-    ) OApp(_endpoint, initialOwner) Ownable(initialOwner) {
+    )
+        OApp(_endpoint, initialOwner)
+        Ownable(initialOwner)
+    {
         spInstance = ISP(_spInstance);
     }
 
@@ -77,7 +79,10 @@ contract AeroDumpAttestations is Ownable, OApp {
         uint64 _kycVerificationSchemaId,
         uint64 _tokenDepositSchemaId,
         uint64 _distributionCertificateSchemaId
-    ) external onlyOwner {
+    )
+        external
+        onlyOwner
+    {
         verifyCertificateSchemaId = _verifyCertificateSchemaId;
         kycVerificationSchemaId = _kycVerificationSchemaId;
         tokenDepositSchemaId = _tokenDepositSchemaId;
@@ -111,20 +116,18 @@ contract AeroDumpAttestations is Ownable, OApp {
         string memory description,
         string memory websiteUrl,
         string memory socialMediaUrl
-    ) external payable returns (uint256 projectId) {
+    )
+        external
+        payable
+        returns (uint256 projectId)
+    {
         require(!s_isVerified[msg.sender], ProjectIsVerified());
 
         // Perform basic checks on the provided information
         require(bytes(projectName).length > 0, ProjectNameCannotBeEmpty());
-        require(
-            bytes(description).length > 0,
-            ProjectDescriptionCannotBeEmpty()
-        );
+        require(bytes(description).length > 0, ProjectDescriptionCannotBeEmpty());
         require(bytes(websiteUrl).length > 0, WebsiteURLCannotBeEmpty());
-        require(
-            bytes(socialMediaUrl).length > 0,
-            SocialMediaURLCannotBeEmpty()
-        );
+        require(bytes(socialMediaUrl).length > 0, SocialMediaURLCannotBeEmpty());
 
         projectId = nextProjectId++;
 
@@ -141,12 +144,7 @@ contract AeroDumpAttestations is Ownable, OApp {
             dataLocation: DataLocation.ONCHAIN,
             revoked: false,
             recipients: recipients,
-            data: abi.encode(
-                projectName,
-                description,
-                websiteUrl,
-                socialMediaUrl
-            )
+            data: abi.encode(projectName, description, websiteUrl, socialMediaUrl)
         });
 
         spInstance.attest(a, "", "", "");
@@ -155,10 +153,8 @@ contract AeroDumpAttestations is Ownable, OApp {
 
         // Prepare params for LayerZero send method
         bytes memory payload = abi.encode(msg.sender, projectId); // Send address of verified user and project ID
-        bytes memory options = OptionsBuilder
-            .newOptions()
-            .addExecutorLzReceiveOption(100000, 0)
-            .addExecutorLzComposeOption(0, 100000, 0);
+        bytes memory options =
+            OptionsBuilder.newOptions().addExecutorLzReceiveOption(100_000, 0).addExecutorLzComposeOption(0, 100_000, 0);
 
         _lzSend(
             composerEid,
@@ -177,10 +173,7 @@ contract AeroDumpAttestations is Ownable, OApp {
      * @param user The address of the user being verified.
      * @param isVerified A boolean indicating whether the user has passed KYC verification (true) or not (false).
      */
-    function recordKYCVerification(
-        address user,
-        bool isVerified
-    ) external onlyOwner {
+    function recordKYCVerification(address user, bool isVerified) external onlyOwner {
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(user);
 
@@ -212,7 +205,9 @@ contract AeroDumpAttestations is Ownable, OApp {
         // uint256 projectId,
         address tokenAddress,
         uint256 amount
-    ) internal {
+    )
+        internal
+    {
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(msg.sender);
         uint256 projectId = getProjectId(projectOwner);
@@ -244,7 +239,9 @@ contract AeroDumpAttestations is Ownable, OApp {
         string memory projectName,
         uint256 totalAmount,
         uint256 recipientCount
-    ) external {
+    )
+        external
+    {
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(msg.sender);
 
@@ -274,9 +271,7 @@ contract AeroDumpAttestations is Ownable, OApp {
         // Encodes the message before invoking _lzSend.
         // Replace with whatever data you want to send!
         bytes memory _payload = abi.encode(_message);
-        bytes memory options = OptionsBuilder
-            .newOptions()
-            .addExecutorLzReceiveOption(60_000, 0);
+        bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(60_000, 0);
         _lzSend(
             _dstEid,
             _payload,
@@ -301,21 +296,22 @@ contract AeroDumpAttestations is Ownable, OApp {
         bytes calldata payload,
         address, // Executor address as specified by the OApp.
         bytes calldata // Any extra data or options to trigger on receipt.
-    ) internal override {
+    )
+        internal
+        override
+    {
         // Decode the payload to get the message
         // In this case, type is string, but depends on your encoding!
-        (address projectOwner, uint256 amount) = abi.decode(
-            payload,
-            (address, uint256)
-        );
+        (uint256 amount) = abi.decode(payload, (uint256));
+        AMOUNT = amount;
         // AMOUNT = amount;
         // recordLockTokens(
         //     projectOwner,
         //     0x5fd84259d66Cd46123540766Be93DFE6D43130D7,
         //     amount
         // );
-        s_lockedTokens[projectOwner] = true;
-        emit AeroDumpAttestations__TokensLocked(projectOwner, amount);
+        //s_lockedTokens[projectOwner] = true;
+        emit AeroDumpAttestations__TokensLocked(address(0), amount);
     }
 
     /**
@@ -357,5 +353,5 @@ contract AeroDumpAttestations is Ownable, OApp {
         return s_lockedTokens[user];
     }
 
-    function getIsCsvUploaded() external view returns (bool) {}
+    function getIsCsvUploaded() external view returns (bool) { }
 }

@@ -2,20 +2,18 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
-import {AeroDumpComposer} from "../../../src/layerzero/AeroDumpComposer.sol";
-import {AerodumpOFTAdapter} from "../../src/layerzero/AerodumpOFTAdapter.sol";
-import {HelperConfig} from "../../../script/HelperConfig.s.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { AeroDumpComposer } from "../../../src/layerzero/AeroDumpComposer.sol";
+import { AerodumpOFTAdapter } from "../../src/layerzero/AerodumpOFTAdapter.sol";
+import { HelperConfig } from "../../../script/HelperConfig.s.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Console is Script {
-    //running on op sepolia
+    //running on hedera
     function run() public {
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
         // AeroDumpComposer composer = AeroDumpComposer(0xa7F96A7ba1b3Ee324dD9d9b115EFEa827bE67d2a);
-        AerodumpOFTAdapter adapter = AerodumpOFTAdapter(
-            0xa8fc227DCC5cEf05bFdd726e88E6E237C043F0B2
-        );
+        AerodumpOFTAdapter adapter = AerodumpOFTAdapter(0x58E294d6B380552C0Cd1c6fEd755E2260342b12F);
         console.log(adapter.getIsUserVerified(msg.sender));
         console.log(adapter.getProjectIdToOwner(0));
         console.log(adapter.getProjectOwnerToId(msg.sender));
