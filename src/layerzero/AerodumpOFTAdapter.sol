@@ -223,7 +223,8 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface, ILayer
             temp.recipients = new address[](0);
             temp.outgoingChainIds = new uint32[](0);
             projects.push(temp);
-            projectOwnerToId[msg.sender] = _projectId;
+            // projectOwnerToId[msg.sender] = _projectId;
+            projectIdToOwner[_projectId] = msg.sender;
         }
 
         emit AerodumpOFTAdapter__TokensLocked(msg.sender, _projectId, _amount, _dstChainId);
