@@ -111,7 +111,7 @@ contract AeroDumpComposer is OApp {
         bytes calldata // Any extra data or options to trigger on receipt.
     ) internal override {
         // Decode the string message and composed address
-        (address user, uint256 projectId) = abi.decode(
+        (address projectOwner, uint256 projectId) = abi.decode(
             payload,
             (address, uint256)
         );
@@ -120,6 +120,6 @@ contract AeroDumpComposer is OApp {
         for (uint256 i = 0; i < adapters.length; i++) {
             endpoint.sendCompose(adapters[i], _guid, 0, payload);
         }
-        emit AeroDumpComposer__ComposeSent(user, projectId);
+        emit AeroDumpComposer__ComposeSent(projectOwner, projectId);
     }
 }

@@ -7,21 +7,21 @@ import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract LockTokens is Script {
+    IERC20 usdc;
+
     //running on op sepolia
     function run() public {
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
         //calls attestatios's set peer both ways to composer
         uint256 projectId = 0;
-        IERC20(config.getOpSepoliaConfig().tokenAddress).approve(
-            0x6dA70c3c286e44F8965c0C26d7D47dba074e9DB0,
-            3 * 1e6
-        );
-        AerodumpOFTAdapter(0x6dA70c3c286e44F8965c0C26d7D47dba074e9DB0)
-            .lockTokens{value: 0.004 ether}(
+        usdc = IERC20(config.getOpSepoliaConfig().tokenAddress);
+        usdc.approve(0xa8fc227DCC5cEf05bFdd726e88E6E237C043F0B2, 2 * 1e6);
+        AerodumpOFTAdapter(0xa8fc227DCC5cEf05bFdd726e88E6E237C043F0B2)
+            .lockTokens{value: 0.012 ether}(
             projectId,
-            3 * 1e6,
             2 * 1e6,
+            1 * 1e6,
             uint32(config.getOpSepoliaConfig().chainId)
         );
 

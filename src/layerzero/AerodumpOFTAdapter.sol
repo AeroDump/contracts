@@ -261,23 +261,21 @@ contract AerodumpOFTAdapter is
             _dstChainId
         );
 
-        if (projectIdToOwner[_projectId] == msg.sender) {
-            projects[projectOwnerToId[msg.sender]]
-                .amountLockedInContract += _amount;
-        } else {
-            project memory temp;
-            temp.isAirdropActive = true;
-            temp.projectId = _projectId;
-            temp.ownerOfTheProject = msg.sender;
-            temp.amountLockedInContract = _amount;
-            temp.incomingChainId = _dstChainId;
-            temp.isSentToRecipients = false;
-            temp.recipients = new address[](0);
-            temp.outgoingChainIds = new uint32[](0);
-            projects.push(temp);
-            projectOwnerToId[msg.sender] = _projectId;
-            projectIdToOwner[_projectId] = msg.sender;
-        }
+        // if (projects[projectOwnerToId[msg.sender]].incomingChainId > 0) {
+        //     projects[projectOwnerToId[msg.sender]]
+        //         .amountLockedInContract += _amount;
+        // } else {
+        project memory temp;
+        temp.isAirdropActive = true;
+        temp.projectId = _projectId;
+        temp.ownerOfTheProject = projectIdToOwner[_projectId];
+        temp.amountLockedInContract = _amount;
+        temp.incomingChainId = _dstChainId;
+        temp.isSentToRecipients = false;
+        temp.recipients = new address[](0);
+        temp.outgoingChainIds = new uint32[](0);
+        projects.push(temp);
+        // }
 
         emit AerodumpOFTAdapter__TokensLocked(
             msg.sender,
@@ -285,19 +283,15 @@ contract AerodumpOFTAdapter is
             _amount,
             _dstChainId
         );
-        bytes memory aeroDumpPayload = abi.encode(
-            msg.sender,
-            _projectId,
-            _amount,
-            TOKEN_ADDRESS
-        ); // Send address of verified user and project ID
+
+        bytes memory payload = abi.encode(msg.sender, _amount);
         bytes memory aerodumpOptions = OptionsBuilder
             .newOptions()
-            .addExecutorLzReceiveOption(55_000, 0);
+            .addExecutorLzReceiveOption(100000, 0);
 
         _lzSend(
             attestationsEid,
-            aeroDumpPayload, // Send encoded projectName
+            payload, // Send encoded projectName
             aerodumpOptions,
             MessagingFee(msg.value, 0),
             payable(msg.sender)
@@ -478,6 +472,8 @@ contract AerodumpOFTAdapter is
 
         // Verify the user on this contract
         isVerifiedUser[user] = true;
+        projectOwnerToId[user] = projectId;
+        projectIdToOwner[projectId] = user;
         // Update the state
         // Do something with the projectName (e.g., log it or update state)
         // data = projectName;
@@ -618,15 +614,7 @@ contract AerodumpOFTAdapter is
      * @param user Address of the project owner.
      * @return uint256 Project Id.
      */
-    function getProjectOwnerToId(
-        address user
-    )
-        public
-        view
-        shouldHaveAnActiveProject
-        projectShouldBeVerified
-        returns (uint256)
-    {
+    function getProjectOwnerToId(address user) public view returns (uint256) {
         return projectOwnerToId[user];
     }
 
@@ -648,13 +636,7 @@ contract AerodumpOFTAdapter is
      */
     function getProjectIdToOwner(
         uint256 projectId
-    )
-        public
-        view
-        shouldHaveAnActiveProject
-        projectShouldBeVerified
-        returns (address)
-    {
+    ) public view returns (address) {
         return projectIdToOwner[projectId];
     }
 

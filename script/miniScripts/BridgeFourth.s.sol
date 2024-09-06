@@ -12,10 +12,10 @@ contract BridgeFourth is Script {
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
         //calls attestatios's set peer both ways to composer
-        AeroDumpAttestations(0x651f45D00c1FecBc345F7Ee708ffe4aB57Aa46F6)
+        AeroDumpAttestations(0xc32b58a3Aa4B65CBef6c64691E20b15e5553aCA4)
             .setPeer(
                 uint32(config.getOpSepoliaConfig().chainEid),
-                addressToBytes32(0x6dA70c3c286e44F8965c0C26d7D47dba074e9DB0)
+                addressToBytes32(0xa8fc227DCC5cEf05bFdd726e88E6E237C043F0B2)
             );
 
         vm.stopBroadcast();

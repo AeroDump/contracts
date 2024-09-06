@@ -13,9 +13,10 @@ contract ConsoleSecond is Script {
         vm.startBroadcast();
         // AeroDumpComposer composer = AeroDumpComposer(0xa7F96A7ba1b3Ee324dD9d9b115EFEa827bE67d2a);
         AeroDumpAttestations attestations = AeroDumpAttestations(
-            0x651f45D00c1FecBc345F7Ee708ffe4aB57Aa46F6
+            0xc32b58a3Aa4B65CBef6c64691E20b15e5553aCA4
         );
-        console.log(attestations.getIsTokensLoked());
+        console.log(attestations.AMOUNT());
+        console.log(attestations.getIsTokensLocked(msg.sender));
 
         vm.stopBroadcast();
     }
