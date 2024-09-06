@@ -2,11 +2,11 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
-import { AerodumpOFTAdapter } from "../../src/layerzero/AerodumpOFTAdapter.sol";
-import { AeroDumpComposer } from "../../../src/layerzero/AeroDumpComposer.sol";
+import {AerodumpOFTAdapter} from "../../src/layerzero/AerodumpOFTAdapter.sol";
+import {AeroDumpComposer} from "../../../src/layerzero/AeroDumpComposer.sol";
 
-import { HelperConfig } from "../../script/HelperConfig.s.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {HelperConfig} from "../../script/HelperConfig.s.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract BridgeSecondScript is Script {
     //running on op sepolia
@@ -14,14 +14,18 @@ contract BridgeSecondScript is Script {
         // sets the peer both ways from composer to attestations.
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
-        AeroDumpComposer(0xa7F96A7ba1b3Ee324dD9d9b115EFEa827bE67d2a).setPeer(
-            uint32(config.getBaseSepoliaConfig().chainEid), addressToBytes32(0x33E21B633FE6f91bAba56d5B08591f572b9Cee73)
+        AeroDumpComposer(0x4AD1c96cb3689Ec85c8902358b90A231081eB7A8).setPeer(
+            uint32(config.getBaseSepoliaConfig().chainEid),
+            addressToBytes32(0xc32b58a3Aa4B65CBef6c64691E20b15e5553aCA4)
         );
 
         address[] memory adapterAddresses = new address[](1); // Adjust size as needed
-        adapterAddresses[0] = address(0xB2315a96B687E1dce36cc87bc0050D8E65775D22);
+        adapterAddresses[0] = address(
+            0xa8fc227DCC5cEf05bFdd726e88E6E237C043F0B2
+        );
 
-        AeroDumpComposer(0xa7F96A7ba1b3Ee324dD9d9b115EFEa827bE67d2a).setAdapterAddresses(adapterAddresses);
+        AeroDumpComposer(0x4AD1c96cb3689Ec85c8902358b90A231081eB7A8)
+            .setAdapterAddresses(adapterAddresses);
         vm.stopBroadcast();
     }
 

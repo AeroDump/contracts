@@ -1,0 +1,11 @@
+Deploy Attestations and Set Schema Ids on attestations
+Deploy Composer
+Deploy Adapter and set the composerEid in adapter
+setPeer from attestations to composer and set composerEid on attestations
+setPeer from composer to attestations and setAdapterAddress on composer
+call verifyProject on attestations while passing a msg.value for gas on adapter
+verified user reflected on composer and adapter
+setPeer from adapter to attestations and setAttestationEid on adapter
+setPeer from attestations to adapter
+call lockTokens on adapter while passing msg.value as gas on attestations
+tokens are locked but recordLockTokens data not reflected on attestations

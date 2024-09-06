@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { OApp, MessagingFee, Origin } from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { IAerodumpOFTAdapter } from "../interfaces/IAerodumpOFTAdapter.sol";
+import {OApp, MessagingFee, Origin} from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IAerodumpOFTAdapter} from "../interfaces/IAerodumpOFTAdapter.sol";
 
 /**
  * @title AeroDumpComposer.
@@ -37,13 +37,20 @@ contract AeroDumpComposer is OApp {
      * @param composedAddress The address that the message is composed for and sent to.
      * @param message The message content that was sent.
      */
-    event AeroDumpComposer__MessageSent(uint32 dstEid, address composedAddress, string message);
+    event AeroDumpComposer__MessageSent(
+        uint32 dstEid,
+        address composedAddress,
+        string message
+    );
 
     /**
      * @param initialOwner Owner address.
      * @param _endpoint Address of this Layerzero OApp endpoint.
      */
-    constructor(address initialOwner, address _endpoint) OApp(_endpoint, initialOwner) Ownable(initialOwner) { }
+    constructor(
+        address initialOwner,
+        address _endpoint
+    ) OApp(_endpoint, initialOwner) Ownable(initialOwner) {}
 
     /**
      * @notice This function sets the adapter addresses for all deployed adapters for different currencies.
@@ -51,7 +58,9 @@ contract AeroDumpComposer is OApp {
      * @dev Only callable mods.
      * @param _adapters Array of addresses of all deployed adapters.
      */
-    function setAdapterAddresses(address[] calldata _adapters) external onlyOwner {
+    function setAdapterAddresses(
+        address[] calldata _adapters
+    ) external onlyOwner {
         adapters = _adapters;
 
         emit AeroDumpComposer__AdapterAddressesUpdated(_adapters);
@@ -68,10 +77,7 @@ contract AeroDumpComposer is OApp {
         string memory _message,
         address _composedAddress,
         bytes calldata _options
-    )
-        external
-        payable
-    {
+    ) external payable {
         // Encodes the message before invoking _lzSend.
         bytes memory _payload = abi.encode(_message, _composedAddress);
         _lzSend(
@@ -103,17 +109,17 @@ contract AeroDumpComposer is OApp {
         bytes calldata payload,
         address, // Executor address as specified by the OApp.
         bytes calldata // Any extra data or options to trigger on receipt.
-    )
-        internal
-        override
-    {
+    ) internal override {
         // Decode the string message and composed address
-        (address user, uint256 projectId) = abi.decode(payload, (address, uint256));
+        (address projectOwner, uint256 projectId) = abi.decode(
+            payload,
+            (address, uint256)
+        );
 
         // Loop through all adapters and send the composed message
         for (uint256 i = 0; i < adapters.length; i++) {
             endpoint.sendCompose(adapters[i], _guid, 0, payload);
         }
-        emit AeroDumpComposer__ComposeSent(user, projectId);
+        emit AeroDumpComposer__ComposeSent(projectOwner, projectId);
     }
 }

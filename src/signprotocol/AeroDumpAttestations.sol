@@ -15,9 +15,15 @@ import {OptionsBuilder} from "../library/OptionsBuilder.sol";
  * @dev It utilizes Sign Protocol's attestation system to store project-related data securely.
  */
 contract AeroDumpAttestations is Ownable, OApp {
+    event AeroDumpAttestations__TokensLocked(
+        address projectOwner,
+        uint256 amount
+    );
     using OptionsBuilder for bytes;
     // @dev The instance of the Sign Protocol interface.
     ISP public spInstance;
+
+    uint256 public AMOUNT;
 
     // @dev Custom error for when a user is not authorized to verify a project.
     error ProjectIsVerified();
@@ -151,8 +157,8 @@ contract AeroDumpAttestations is Ownable, OApp {
         bytes memory payload = abi.encode(msg.sender, projectId); // Send address of verified user and project ID
         bytes memory options = OptionsBuilder
             .newOptions()
-            .addExecutorLzReceiveOption(55_000, 0)
-            .addExecutorLzComposeOption(0, 55_000, 0);
+            .addExecutorLzReceiveOption(100000, 0)
+            .addExecutorLzComposeOption(0, 100000, 0);
 
         _lzSend(
             composerEid,
@@ -198,17 +204,19 @@ contract AeroDumpAttestations is Ownable, OApp {
     /**
      * @notice Records a token deposit for a project.
      * @dev Creates an attestation for the token deposit, including token address and amount.
-     * @param projectId The ID of the project associated with the token deposit.
      * @param tokenAddress The address of the ERC20 token being deposited.
      * @param amount The amount of tokens being deposited.
      */
     function recordLockTokens(
-        uint256 projectId,
+        address projectOwner,
+        // uint256 projectId,
         address tokenAddress,
         uint256 amount
-    ) external {
+    ) internal {
         bytes[] memory recipients = new bytes[](1);
         recipients[0] = abi.encode(msg.sender);
+        uint256 projectId = getProjectId(projectOwner);
+        s_lockedTokens[projectOwner] = true;
 
         Attestation memory a = Attestation({
             schemaId: tokenDepositSchemaId,
@@ -222,7 +230,6 @@ contract AeroDumpAttestations is Ownable, OApp {
             recipients: recipients,
             data: abi.encode(projectId, tokenAddress, amount)
         });
-
         spInstance.attest(a, "", "", "");
     }
 
@@ -297,7 +304,18 @@ contract AeroDumpAttestations is Ownable, OApp {
     ) internal override {
         // Decode the payload to get the message
         // In this case, type is string, but depends on your encoding!
-        abi.decode(payload, (string));
+        (address projectOwner, uint256 amount) = abi.decode(
+            payload,
+            (address, uint256)
+        );
+        // AMOUNT = amount;
+        // recordLockTokens(
+        //     projectOwner,
+        //     0x5fd84259d66Cd46123540766Be93DFE6D43130D7,
+        //     amount
+        // );
+        s_lockedTokens[projectOwner] = true;
+        emit AeroDumpAttestations__TokensLocked(projectOwner, amount);
     }
 
     /**
@@ -326,7 +344,7 @@ contract AeroDumpAttestations is Ownable, OApp {
      * @param user The address of the user to check.
      * @return uint256 The ID of the project associated with the user.
      */
-    function getProjectId(address user) external view returns (uint256) {
+    function getProjectId(address user) public view returns (uint256) {
         return s_projectIds[user];
     }
 
@@ -335,8 +353,8 @@ contract AeroDumpAttestations is Ownable, OApp {
      * @dev Returns whether the given address has locked tokens.
      * @return bool Returns true if the user has locked tokens, false otherwise.
      */
-    function getIsTokensLoked() external view returns (bool) {
-        return s_lockedTokens[msg.sender];
+    function getIsTokensLocked(address user) external view returns (bool) {
+        return s_lockedTokens[user];
     }
 
     function getIsCsvUploaded() external view returns (bool) {}
