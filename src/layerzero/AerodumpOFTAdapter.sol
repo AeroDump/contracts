@@ -223,7 +223,7 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface, ILayer
             temp.recipients = new address[](0);
             temp.outgoingChainIds = new uint32[](0);
             projects.push(temp);
-            projectOwnerToId[msg.sender] = _projectId;
+            // projectOwnerToId[msg.sender] = _projectId;
             projectIdToOwner[_projectId] = msg.sender;
         }
 
@@ -383,9 +383,9 @@ contract AerodumpOFTAdapter is OFTAdapter, AutomationCompatibleInterface, ILayer
 
         // Verify the user on this contract
         isVerifiedUser[user] = true;
-        // Update the state
-        // Do something with the projectName (e.g., log it or update state)
-        // data = projectName;
+
+        // Update the projectOwnerToId and projectIdToOwner mappings
+        projectOwnerToId[user] = projectId;
 
         emit AerodumpOFTAdapter__UserVerified(user, projectId);
     }
