@@ -112,7 +112,7 @@ contract AerodumpOFTAdapter is
     /**
      * @dev Layerzero eid for AeroDumpComposer.
      */
-    uint32 public composerEid;
+    uint32 public composerSecondEid;
 
     /**
      * @dev Layerzero eid for the AeroDumpAttestations.
@@ -221,8 +221,8 @@ contract AerodumpOFTAdapter is
      * @notice Sets the AeroDumpComposer endpoint ID.
      * @param _dstEid The destination endpoint ID.
      */
-    function setComposerEid(uint32 _dstEid) external onlyOwner {
-        composerEid = _dstEid;
+    function setComposerSecondEid(uint32 _dstEid) external onlyOwner {
+        composerSecondEid = _dstEid;
     }
 
     /**
@@ -289,20 +289,34 @@ contract AerodumpOFTAdapter is
             _dstChainId
         );
 
-        bytes memory payload = abi.encode(msg.sender, _amount);
-        bytes memory aerodumpOptions = OptionsBuilder
+        // bytes memory payload = abi.encode(msg.sender, _amount);
+        // bytes memory aerodumpOptions = OptionsBuilder
+        //     .newOptions()
+        //     .addExecutorLzReceiveOption(70000, 0);
+
+        // _lzSend(
+        //     attestationsEid,
+        //     payload, // Send encoded projectName
+        //     aerodumpOptions,
+        //     MessagingFee(msg.value, 0),
+        //     payable(msg.sender)
+        // );
+        // is_lockedTokens[msg.sender] = true;
+
+        // Prepare params for LayerZero send method
+        bytes memory payload = abi.encode(_amount); // Send address of verified user and project ID
+        bytes memory options = OptionsBuilder
             .newOptions()
-            .addExecutorLzReceiveOption(70000, 0);
+            .addExecutorLzReceiveOption(80000, 0)
+            .addExecutorLzComposeOption(0, 80000, 0);
 
         _lzSend(
-            attestationsEid,
+            composerSecondEid,
             payload, // Send encoded projectName
-            aerodumpOptions,
+            options,
             MessagingFee(msg.value, 0),
             payable(msg.sender)
         );
-        is_lockedTokens[msg.sender] = true;
-
         return (amountSent, amountRecievedByRemote);
     }
 

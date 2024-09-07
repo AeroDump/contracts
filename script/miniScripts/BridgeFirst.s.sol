@@ -7,19 +7,23 @@ import {AeroDumpAttestations} from "../../src/signprotocol/AeroDumpAttestations.
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract BridgeScript is Script {
+contract BridgeFirst is Script {
     //running on base sepolia
     function run() public {
+        AeroDumpAttestations attestations = AeroDumpAttestations(
+            0xe4B0BE62627747Ac752669eBb93Ee612ECFd73bE
+        );
+        address composerFirstAddress = 0xA6f21f0C90f316D8420BBF3897eB98227285d14b;
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
         //calls attestatios's set peer both ways to composer
-        AeroDumpAttestations(0x11a17E5D54A591465F925772868f3695422F7Fea)
-            .setPeer(
-                uint32(config.getOpSepoliaConfig().chainEid),
-                addressToBytes32(0xa31Cb24339725ccB5A50358Ad77F66Bdc02A613B)
-            );
-        AeroDumpAttestations(0x11a17E5D54A591465F925772868f3695422F7Fea)
-            .setComposerEid(uint32(config.getOpSepoliaConfig().chainEid));
+        attestations.setPeer( //attestations
+            uint32(config.getOpSepoliaConfig().chainEid),
+            addressToBytes32(composerFirstAddress) //composer first
+        );
+        attestations.setComposerFirstEid( //attestations
+            uint32(config.getOpSepoliaConfig().chainEid)
+        );
         vm.stopBroadcast();
     }
 

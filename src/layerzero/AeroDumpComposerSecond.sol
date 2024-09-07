@@ -12,24 +12,28 @@ import {IAerodumpOFTAdapter} from "../interfaces/IAerodumpOFTAdapter.sol";
  * @dev This contract receives project verified address from AeroDumpAttestations.
  * @dev Deployed on a different chain than Attestations(Hedera).
  */
-contract AeroDumpComposer is OApp {
+contract AeroDumpComposerSecond is OApp {
     /**
-     * @notice Array of addresses for all the deployed OFT adapters for different currencies.
+     * @notice Addresses for deployed attestations contract on base.
      */
-    address[] public adapters;
+    address public attestations;
+
+    uint256 public AMOUNT;
 
     /**
      * @notice Is triggered when composed address and id are sent to adapters.
      * @param user Address of the user who has verified his project.
-     * @param projectId Project id of the project that is verified by user.
+     * @param amount Project id of the project that is verified by user.
      */
-    event AeroDumpComposer__ComposeSent(address user, uint256 projectId);
+    event AeroDumpComposerSecond__ComposeSent(address user, uint256 amount);
 
     /**
      * @notice Is triggered when adapter addresses are updated.
-     * @param adapters Array of addresses of all deployed adapters.
+     * @param attestations Array of addresses of all deployed adapters.
      */
-    event AeroDumpComposer__AdapterAddressesUpdated(address[] adapters);
+    event AeroDumpComposerSecond__AttestationsAddressesUpdated(
+        address attestations
+    );
 
     /**
      * @notice Emitted when a message is sent to a destination endpoint.
@@ -56,42 +60,42 @@ contract AeroDumpComposer is OApp {
      * @notice This function sets the adapter addresses for all deployed adapters for different currencies.
      * @dev These addresses are accessed while sending compose to the adapters.
      * @dev Only callable mods.
-     * @param _adapters Array of addresses of all deployed adapters.
+     * @param _attestations Array of addresses of attestations contract on base.
      */
-    function setAdapterAddresses(
-        address[] calldata _adapters
-    ) external onlyOwner {
-        adapters = _adapters;
+    function setAttestationsAddress(address _attestations) external onlyOwner {
+        attestations = _attestations;
 
-        emit AeroDumpComposer__AdapterAddressesUpdated(_adapters);
-    }
-
-    /**
-     * @notice Layerzero send method, unaltered.
-     * @dev This function us used to test omnichain messaging, custom _lzSend is already implemented in verifyProject.
-     * @param _dstEid LayerZero endpoint ID.
-     * @param _message Message to be sent.
-     */
-    function send(
-        uint32 _dstEid,
-        string memory _message,
-        address _composedAddress,
-        bytes calldata _options
-    ) external payable {
-        // Encodes the message before invoking _lzSend.
-        bytes memory _payload = abi.encode(_message, _composedAddress);
-        _lzSend(
-            _dstEid,
-            _payload,
-            _options,
-            // Fee in native gas and ZRO token.
-            MessagingFee(msg.value, 0),
-            // Refund address in case of failed source message.
-            payable(msg.sender)
+        emit AeroDumpComposerSecond__AttestationsAddressesUpdated(
+            _attestations
         );
-
-        emit AeroDumpComposer__MessageSent(_dstEid, _composedAddress, _message);
     }
+
+    // /**
+    //  * @notice Layerzero send method, unaltered.
+    //  * @dev This function us used to test omnichain messaging, custom _lzSend is already implemented in verifyProject.
+    //  * @param _dstEid LayerZero endpoint ID.
+    //  * @param _message Message to be sent.
+    //  */
+    // function send(
+    //     uint32 _dstEid,
+    //     string memory _message,
+    //     address _composedAddress,
+    //     bytes calldata _options
+    // ) external payable {
+    //     // Encodes the message before invoking _lzSend.
+    //     bytes memory _payload = abi.encode(_message, _composedAddress);
+    //     _lzSend(
+    //         _dstEid,
+    //         _payload,
+    //         _options,
+    //         // Fee in native gas and ZRO token.
+    //         MessagingFee(msg.value, 0),
+    //         // Refund address in case of failed source message.
+    //         payable(msg.sender)
+    //     );
+
+    //     emit AeroDumpComposer__MessageSent(_dstEid, _composedAddress, _message);
+    // }
 
     /**
      * @notice Called when data is received from the protocol. It overrides the equivalent function in the parent
@@ -111,15 +115,11 @@ contract AeroDumpComposer is OApp {
         bytes calldata // Any extra data or options to trigger on receipt.
     ) internal override {
         // Decode the string message and composed address
-        (address projectOwner, uint256 projectId) = abi.decode(
-            payload,
-            (address, uint256)
-        );
+        uint256 amount = abi.decode(payload, (uint256));
+        AMOUNT = amount;
 
-        // Loop through all adapters and send the composed message
-        for (uint256 i = 0; i < adapters.length; i++) {
-            endpoint.sendCompose(adapters[i], _guid, 0, payload);
-        }
-        emit AeroDumpComposer__ComposeSent(projectOwner, projectId);
+        // endpoint.sendCompose(attestations, _guid, 0, payload);
+
+        emit AeroDumpComposerSecond__ComposeSent(attestations, amount);
     }
 }

@@ -7,6 +7,7 @@ import {Attestation} from "@signprotocol/signprotocol-evm/src/models/Attestation
 import {DataLocation} from "@signprotocol/signprotocol-evm/src/models/DataLocation.sol";
 import {OApp, MessagingFee, Origin} from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
 import {OptionsBuilder} from "../library/OptionsBuilder.sol";
+import {ILayerZeroComposer} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroComposer.sol";
 
 /**
  * @title AeroDumpAttestations
@@ -14,7 +15,7 @@ import {OptionsBuilder} from "../library/OptionsBuilder.sol";
  * @notice This contract manages various attestations for a multi-sender platform.
  * @dev It utilizes Sign Protocol's attestation system to store project-related data securely.
  */
-contract AeroDumpAttestations is Ownable, OApp {
+contract AeroDumpAttestations is ILayerZeroComposer, Ownable, OApp {
     event AeroDumpAttestations__TokensLocked(
         address projectOwner,
         uint256 amount
@@ -42,7 +43,7 @@ contract AeroDumpAttestations is Ownable, OApp {
     uint256 private nextProjectId;
 
     // @dev Layerzero eid for AeroDumpComposer
-    uint32 public composerEid;
+    uint32 public composerFirstEid;
 
     // @dev Mapping of addresses to boolean indicating whether they are verified project managers.
     mapping(address => bool) private s_isVerified;
@@ -88,8 +89,8 @@ contract AeroDumpAttestations is Ownable, OApp {
      * @notice Sets the AeroDumpComposer endpoint ID.
      * @param _dstEid The destination endpoint ID.
      */
-    function setComposerEid(uint32 _dstEid) external onlyOwner {
-        composerEid = _dstEid;
+    function setComposerFirstEid(uint32 _dstEid) external onlyOwner {
+        composerFirstEid = _dstEid;
     }
 
     /**
@@ -161,7 +162,7 @@ contract AeroDumpAttestations is Ownable, OApp {
             .addExecutorLzComposeOption(0, 70000, 0);
 
         _lzSend(
-            composerEid,
+            composerFirstEid,
             payload, // Send encoded projectName
             options,
             MessagingFee(msg.value, 0),
@@ -264,51 +265,80 @@ contract AeroDumpAttestations is Ownable, OApp {
         spInstance.attest(a, "", "", "");
     }
 
-    /**
-     * @notice Layerzero send method, unaltered.
-     * @dev This function us used to test omnichain messaging, custom _lzSend is already implemented in verifyProject.
-     * @param _dstEid LayerZero endpoint ID.
-     * @param _message Message to be sent.
-     */
-    function send(uint32 _dstEid, string memory _message) external payable {
-        // Encodes the message before invoking _lzSend.
-        // Replace with whatever data you want to send!
-        bytes memory _payload = abi.encode(_message);
-        bytes memory options = OptionsBuilder
-            .newOptions()
-            .addExecutorLzReceiveOption(60_000, 0);
-        _lzSend(
-            _dstEid,
-            _payload,
-            options,
-            // Fee in native gas and ZRO token.
-            MessagingFee(msg.value, 0),
-            // Refund address in case of failed source message.
-            payable(msg.sender)
-        );
-    }
+    // /**
+    //  * @notice Layerzero send method, unaltered.
+    //  * @dev This function us used to test omnichain messaging, custom _lzSend is already implemented in verifyProject.
+    //  * @param _dstEid LayerZero endpoint ID.
+    //  * @param _message Message to be sent.
+    //  */
+    // function send(uint32 _dstEid, string memory _message) external payable {
+    //     // Encodes the message before invoking _lzSend.
+    //     // Replace with whatever data you want to send!
+    //     bytes memory _payload = abi.encode(_message);
+    //     bytes memory options = OptionsBuilder
+    //         .newOptions()
+    //         .addExecutorLzReceiveOption(60_000, 0);
+    //     _lzSend(
+    //         _dstEid,
+    //         _payload,
+    //         options,
+    //         // Fee in native gas and ZRO token.
+    //         MessagingFee(msg.value, 0),
+    //         // Refund address in case of failed source message.
+    //         payable(msg.sender)
+    //     );
+    // }
+
+    // /**
+    //  * @dev Called when data is received from the protocol. It overrides the equivalent function in the parent contract.
+    //  * Protocol messages are defined as packets, comprised of the following parameters.
+    //  * @param _origin A struct containing information about where the packet came from.
+    //  * @param _guid A global unique identifier for tracking the packet.
+    //  * @param payload Encoded message.
+    //  */
+    // function _lzReceive(
+    //     Origin calldata _origin,
+    //     bytes32 _guid,
+    //     bytes calldata payload,
+    //     address, // Executor address as specified by the OApp.
+    //     bytes calldata // Any extra data or options to trigger on receipt.
+    // ) internal override {
+    //     // Decode the payload to get the message
+    //     // In this case, type is string, but depends on your encoding!
+    //     (address projectOwner, uint256 amount) = abi.decode(
+    //         payload,
+    //         (address, uint256)
+    //     );
+    //     // AMOUNT = amount;
+    //     // recordLockTokens(
+    //     //     projectOwner,
+    //     //     0x5fd84259d66Cd46123540766Be93DFE6D43130D7,
+    //     //     amount
+    //     // );
+    //     s_lockedTokens[projectOwner] = true;
+    //     emit AeroDumpAttestations__TokensLocked(projectOwner, amount);
+    // }
 
     /**
-     * @dev Called when data is received from the protocol. It overrides the equivalent function in the parent contract.
-     * Protocol messages are defined as packets, comprised of the following parameters.
-     * @param _origin A struct containing information about where the packet came from.
-     * @param _guid A global unique identifier for tracking the packet.
-     * @param payload Encoded message.
+     * @notice Handles incoming composed messages from LayerZero.
+     * @dev receives verified project id and project owner address from AeroDumpAttestations Through AeroDumpComposer.
+     * @dev Decodes the message payload and updates the state, sets isVerifiedUser as true.
+     * @param _oApp The address of the originating OApp.
      */
-    function _lzReceive(
-        Origin calldata _origin,
-        bytes32 _guid,
+    function lzCompose(
+        address _oApp,
+        bytes32 /*_guid*/,
         bytes calldata payload,
-        address, // Executor address as specified by the OApp.
-        bytes calldata // Any extra data or options to trigger on receipt.
-    ) internal override {
-        // Decode the payload to get the message
-        // In this case, type is string, but depends on your encoding!
+        address,
+        bytes calldata
+    ) external payable override {
+        // Decode the string message (projectName)
         (address projectOwner, uint256 amount) = abi.decode(
             payload,
             (address, uint256)
         );
-        // AMOUNT = amount;
+
+        AMOUNT = amount;
         // recordLockTokens(
         //     projectOwner,
         //     0x5fd84259d66Cd46123540766Be93DFE6D43130D7,
@@ -358,4 +388,12 @@ contract AeroDumpAttestations is Ownable, OApp {
     }
 
     function getIsCsvUploaded() external view returns (bool) {}
+
+    function _lzReceive(
+        Origin calldata _origin,
+        bytes32 _guid,
+        bytes calldata _message,
+        address _executor,
+        bytes calldata _extraData
+    ) internal virtual override {}
 }

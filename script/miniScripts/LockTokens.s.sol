@@ -16,11 +16,11 @@ contract LockTokens is Script {
         //calls attestatios's set peer both ways to composer
         uint256 projectId = 0;
         usdc = IERC20(config.getOpSepoliaConfig().tokenAddress);
-        usdc.approve(0xa8fc227DCC5cEf05bFdd726e88E6E237C043F0B2, 2 * 1e6);
-        AerodumpOFTAdapter(0xa8fc227DCC5cEf05bFdd726e88E6E237C043F0B2)
-            .lockTokens{value: 0.012 ether}(
+        usdc.approve(0x425631DdcF82700a85627DA00c4afE1e6FD752d5, 1 * 1e6);
+        AerodumpOFTAdapter(0x425631DdcF82700a85627DA00c4afE1e6FD752d5)
+            .lockTokens{value: 0.005 ether}(
             projectId,
-            2 * 1e6,
+            1 * 1e6,
             1 * 1e6,
             uint32(config.getOpSepoliaConfig().chainId)
         );
