@@ -14,10 +14,12 @@ contract Console is Script {
         vm.startBroadcast();
         // AeroDumpComposer composer = AeroDumpComposer(0xa7F96A7ba1b3Ee324dD9d9b115EFEa827bE67d2a);
         AerodumpOFTAdapter adapter = AerodumpOFTAdapter(
-            0xa8fc227DCC5cEf05bFdd726e88E6E237C043F0B2
+            0x09553565c26d6e5A27Db70692C0E1aFE2cA846E3
         );
         console.log(adapter.getIsUserVerified(msg.sender));
-        console.log(adapter.getProjectIdToOwner(0));
+        console.log(
+            adapter.getProjectIdToOwner(adapter.getProjectOwnerToId(msg.sender))
+        );
         console.log(adapter.getProjectOwnerToId(msg.sender));
 
         vm.stopBroadcast();

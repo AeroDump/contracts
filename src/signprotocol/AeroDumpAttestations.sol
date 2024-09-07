@@ -157,8 +157,8 @@ contract AeroDumpAttestations is Ownable, OApp {
         bytes memory payload = abi.encode(msg.sender, projectId); // Send address of verified user and project ID
         bytes memory options = OptionsBuilder
             .newOptions()
-            .addExecutorLzReceiveOption(100000, 0)
-            .addExecutorLzComposeOption(0, 100000, 0);
+            .addExecutorLzReceiveOption(70000, 0)
+            .addExecutorLzComposeOption(0, 70000, 0);
 
         _lzSend(
             composerEid,

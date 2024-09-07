@@ -160,6 +160,11 @@ contract AerodumpOFTAdapter is
     mapping(address => bool) public isVerifiedUser;
 
     /**
+     * @dev A mapping from the address of a project owner to bool indicating tokens are locked.
+     */
+    mapping(address => bool) public is_lockedTokens;
+
+    /**
      * @dev Modifier to check if the user has a project.
      */
     modifier shouldHaveAnActiveProject() {
@@ -287,7 +292,7 @@ contract AerodumpOFTAdapter is
         bytes memory payload = abi.encode(msg.sender, _amount);
         bytes memory aerodumpOptions = OptionsBuilder
             .newOptions()
-            .addExecutorLzReceiveOption(100000, 0);
+            .addExecutorLzReceiveOption(70000, 0);
 
         _lzSend(
             attestationsEid,
@@ -296,6 +301,8 @@ contract AerodumpOFTAdapter is
             MessagingFee(msg.value, 0),
             payable(msg.sender)
         );
+        is_lockedTokens[msg.sender] = true;
+
         return (amountSent, amountRecievedByRemote);
     }
 
@@ -671,5 +678,9 @@ contract AerodumpOFTAdapter is
     {
         return
             unequalDistributionCSVQueue[unequalDistributionCSVQueueFrontIndex];
+    }
+
+    function getIsLockedTokens(address user) public view returns (bool) {
+        return is_lockedTokens[user];
     }
 }

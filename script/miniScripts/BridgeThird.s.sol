@@ -11,12 +11,12 @@ contract BridgeThird is Script {
     function run() public {
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
-        AerodumpOFTAdapter(0xa8fc227DCC5cEf05bFdd726e88E6E237C043F0B2)
+        AerodumpOFTAdapter(0xc121eDef7bE2Bc9ea7E8Bc6D697bD6AF3730A266)
             .setAttestationsEid(uint32(config.getBaseSepoliaConfig().chainEid));
         //calls attestatios's set peer both ways to composer
-        AerodumpOFTAdapter(0xa8fc227DCC5cEf05bFdd726e88E6E237C043F0B2).setPeer(
+        AerodumpOFTAdapter(0xc121eDef7bE2Bc9ea7E8Bc6D697bD6AF3730A266).setPeer(
             uint32(config.getBaseSepoliaConfig().chainEid),
-            addressToBytes32(0xc32b58a3Aa4B65CBef6c64691E20b15e5553aCA4)
+            addressToBytes32(0x0742E003FBe108fd92f7B089cDce906A9a143e2c)
         );
 
         vm.stopBroadcast();

@@ -14,17 +14,17 @@ contract BridgeSecondScript is Script {
         // sets the peer both ways from composer to attestations.
         HelperConfig config = new HelperConfig();
         vm.startBroadcast();
-        AeroDumpComposer(0x4AD1c96cb3689Ec85c8902358b90A231081eB7A8).setPeer(
+        AeroDumpComposer(0xa31Cb24339725ccB5A50358Ad77F66Bdc02A613B).setPeer(
             uint32(config.getBaseSepoliaConfig().chainEid),
-            addressToBytes32(0xc32b58a3Aa4B65CBef6c64691E20b15e5553aCA4)
+            addressToBytes32(0x11a17E5D54A591465F925772868f3695422F7Fea)
         );
 
         address[] memory adapterAddresses = new address[](1); // Adjust size as needed
         adapterAddresses[0] = address(
-            0xa8fc227DCC5cEf05bFdd726e88E6E237C043F0B2
+            0x09553565c26d6e5A27Db70692C0E1aFE2cA846E3
         );
 
-        AeroDumpComposer(0x4AD1c96cb3689Ec85c8902358b90A231081eB7A8)
+        AeroDumpComposer(0xa31Cb24339725ccB5A50358Ad77F66Bdc02A613B)
             .setAdapterAddresses(adapterAddresses);
         vm.stopBroadcast();
     }
