@@ -65,8 +65,7 @@ graph TD;
 Aerodump's cross-chain solution enhances interoperability and functionality within decentralized ecosystems. This setup ensures fast, secure, and scalable interactions across blockchains. LayerZero technology facilitates a robust framework for multi-chain messaging and asset management in Aerodump's ecosystem.
 
 > **Web3Auth**
-- We use the Web3Auth SDK to provide users with a streamlined, passwordless authentication experience, generating a Web3 wallet for them instantly. This allows users to securely access our app without managing private keys directly, utilizing their existing social logins (like Google, Twitter, etc.) for seamless onboarding. Web3Auth integrates multi-party computation (MPC) and non-custodial key infrastructure to ensure both ease of use and high security across Web3 apps​(Web3Auth)​(Consensus 2024 Presented by CoinDesk). 
-This setup enhances user engagement and simplifies Web3 interactions for newcomers.
+- We use the Web3Auth SDK to provide users with a streamlined, passwordless authentication experience, generating a Web3 wallet for them instantly. This allows users to securely access our app without managing private keys directly, utilizing their existing social logins (like Google, Twitter, etc.) for seamless onboarding. Web3Auth integrates multi-party computation (MPC) and non-custodial key infrastructure to ensure both ease of use and high security across Web3 apps​. This setup enhances user engagement and simplifies Web3 interactions for newcomers.
 
 ## Foundry
 
