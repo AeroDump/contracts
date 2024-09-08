@@ -60,9 +60,13 @@ graph TD;
    - After completion, view all records on the history page using ENVIO on-chain indexing.
 
 ## How it's made
-> **OFTAdapter,composer and composer secont contracts integration**
+> **LayerZero**
+>> **OFTAdapter.sol, composerfirst and composersecond contracts**
 - Aerodump leverages LayerZero for seamless omnichain messaging, enabling attestations data from the home network to be sent to adapters on multiple chains. Attestations contracts are based on the home network, ensuring secure and reliable data communication across different blockchain environments. Cross-chain data access ensures that adapters on various chains can securely interact with attestations from the home network. LayerZero's OFT vault standards are utilized for efficient cross-chain asset transfers and management.
 Aerodump's cross-chain solution enhances interoperability and functionality within decentralized ecosystems. This setup ensures fast, secure, and scalable interactions across blockchains. LayerZero technology facilitates a robust framework for multi-chain messaging and asset management in Aerodump's ecosystem.
+
+> **Chainlink**
+- We are using Chainlink Automation to trigger custom logic upkeep for automating the process of sending airdrops to recipients, one at a time. This avoids the need for looping over recipients, which would otherwise result in high gas costs. By using Chainlink's hyper-reliable decentralized automation network, we ensure efficient and gas-optimized transactions, sending airdrops to individual addresses automatically. Chainlink Upkeep handles the conditional execution of smart contract functions, making it scalable and cost-effective, especially for tasks that involve numerous recipients across various chains​.
 
 > **Web3Auth**
 - We use the Web3Auth SDK to provide users with a streamlined, passwordless authentication experience, generating a Web3 wallet for them instantly. This allows users to securely access our app without managing private keys directly, utilizing their existing social logins (like Google, Twitter, etc.) for seamless onboarding. Web3Auth integrates multi-party computation (MPC) and non-custodial key infrastructure to ensure both ease of use and high security across Web3 apps​. This setup enhances user engagement and simplifies Web3 interactions for newcomers.
