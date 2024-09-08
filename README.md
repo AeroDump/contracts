@@ -4,7 +4,7 @@
 `AeroDump` is a cutting-edge platform designed to simplify and automate the distribution of tokens for users and project owners across multiple blockchain networks. 
 Built to support airdrops, marketing event rewards, and large-scale token transfers, AeroDump leverages the power of automation, cross-chain interoperability, and secure vaults to provide an efficient, hands-free solution for bulk token distribution.
 
-### [AeroDump Platform](https://aerodump.vercel.app/)
+### [AeroDump Platform](https://aerodump-frontend.vercel.app/)
 
 # Process
 ![image](https://github.com/user-attachments/assets/45b95d8f-273e-4461-890b-49ce3c94ada1)
